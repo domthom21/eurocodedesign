@@ -1,0 +1,7 @@
+=====
+Usage
+=====
+
+To use eurocodedesign in a project::
+
+    import eurocodedesign
