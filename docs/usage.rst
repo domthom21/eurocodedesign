@@ -4,4 +4,4 @@ Usage
 
 To use eurocodedesign in a project::
 
-    import eurocodedesign
+    import eurocodedesign as ed
