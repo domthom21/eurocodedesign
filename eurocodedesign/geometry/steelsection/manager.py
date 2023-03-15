@@ -87,9 +87,8 @@ def get_section(section_name: str) -> SteelSection:
     # returns a SteelSection object containing the section properties
     section_props = load_section_props(section_name)
     section_type = get_section_type(section_name)
-    return SECTION_DATA[section_type]["section_class"](
-        section_name, *section_props.tolist()
-    )
+    section_class = SECTION_DATA[section_type]["section_class"]
+    return section_class(section_name, *section_props.tolist())
 
 
 if __name__ == "__main__":
