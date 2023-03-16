@@ -46,7 +46,7 @@ def is_valid_type(section_name: str) -> bool:
     return False
 
 
-def read_section_database(section_type: str) -> pd.DataFrame:
+def import_section_database(section_type: str) -> pd.DataFrame:
     # returns the csv as a pandas dataframe
     # assumes the csv for the chosen section type is available
     filepath = get_data_path() / SECTION_DATA[section_type]["filename"]
@@ -64,11 +64,12 @@ def get_section_props(section: str, section_df: pd.DataFrame) -> pd.Series:
     return section_df.loc[section]
 
 
-def get_section_type(section: str) -> str:
+def get_section_type(section: str) -> str|None:
     # extracts the type of section from name of the section
     for section_type in SECTION_DATA.keys():
         if section_type in section:
             return section_type
+    return None
 
 
 def load_section_props(section_name: str) -> pd.Series:
@@ -78,7 +79,10 @@ def load_section_props(section_name: str) -> pd.Series:
     else:
         if is_valid_type(section_name):
             section_type = get_section_type(section_name)
-            section_db = read_section_database(section_type)
+            if section_type is None:
+                # todo: raise error flagging that section is not in database
+                pass
+            section_db = import_section_database(section_type)
             if is_valid_section(section_name, section_db):
                 return get_section_props(section_name, section_db)
 
