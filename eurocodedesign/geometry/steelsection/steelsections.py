@@ -28,11 +28,11 @@ class WeldedSection(SteelSection):
 @dataclass(frozen=True)
 class ISection(SteelSection):
     pass
-    
+
 
 @dataclass(frozen=True)
 class HollowSection(SteelSection):
-    pass    
+    pass
 
 
 @dataclass(frozen=True)
@@ -89,6 +89,7 @@ class CircHollowSection(HollowSection):
             "CircHollowSection.print_propteries() is not yet implemented"
         )
 
+
 @dataclass(frozen=True)
 class RectHollowSection(HollowSection):
     height: float
@@ -112,13 +113,13 @@ class RectHollowSection(HollowSection):
     torsion_constant: float
     torsion_modulus: float
     manufacture_method: str
-    
+
     def print_properties(self) -> None:
         # TODO: implement a nice way of printing the properties
         raise NotImplementedError(
             "RectHollowSection.print_propteries() is not yet implemented"
         )
-        
+
 
 @dataclass(frozen=True)
 class SquareHollowSection(HollowSection):
@@ -137,10 +138,9 @@ class SquareHollowSection(HollowSection):
     torsion_constant: float
     torsion_modulus: float
     manufacture_method: str
-    
+
     def print_properties(self) -> None:
         # TODO: implement a nice way of printing the properties
         raise NotImplementedError(
             "SquareHollowSection.print_propteries() is not yet implemented"
         )
-    
