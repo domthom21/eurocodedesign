@@ -11,6 +11,9 @@ from pathlib import Path
 from eurocodedesign.geometry.steelsection.steelsections import (
     SteelSection,
     RolledISection,
+    CircHollowSection,
+    RectHollowSection,
+    SquareHollowSection,
 )
 
 SECTION_DATA = {
@@ -20,6 +23,18 @@ SECTION_DATA = {
     "IPE": {"filename": "ipe_en10365_2017.csv", "section_class": RolledISection},
     "UB": {"filename": "ub_en10365_2017.csv", "section_class": RolledISection},
     "UC": {"filename": "uc_en10365_2017.csv", "section_class": RolledISection},
+    "CHS": {
+        "filename": "chs_en10219_en10210_2006.csv",
+        "section_class": CircHollowSection,
+    },
+    "SHS": {
+        "filename": "shs_en10219_en10210_2006.csv",
+        "section_class": SquareHollowSection,
+    },
+    "RHS": {
+        "filename": "rhs_en10219_en10210_2006.csv",
+        "section_class": RectHollowSection,
+    },
 }
 
 
@@ -64,7 +79,7 @@ def get_section_props(section: str, section_df: pd.DataFrame) -> pd.Series:
     return section_df.loc[section]
 
 
-def get_section_type(section: str) -> str|None:
+def get_section_type(section: str) -> str | None:
     # extracts the type of section from name of the section
     for section_type in SECTION_DATA.keys():
         if section_type in section:
@@ -96,6 +111,6 @@ def get_section(section_name: str) -> SteelSection:
 
 
 if __name__ == "__main__":
-    a = "IPE300"
+    a = "CHS60.3x2.5"
     prof = get_section(a)
     print(prof)
