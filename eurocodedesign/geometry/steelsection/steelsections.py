@@ -26,43 +26,13 @@ class WeldedSection(SteelSection):
 
 
 @dataclass(frozen=True)
-class HollowSection(SteelSection):
-    pass
-
-
-@dataclass(frozen=True)
-class FullSection(SteelSection):
-    pass
-
-
-@dataclass(frozen=True)
 class ISection(SteelSection):
     pass
-
-
-@dataclass(frozen=True)
-class SquareSection(SteelSection):
-    pass
-
+    
 
 @dataclass(frozen=True)
-class RectSection(SteelSection):
-    pass
-
-
-@dataclass(frozen=True)
-class CircSection(SteelSection):
-    pass
-
-
-@dataclass(frozen=True)
-class HotFormed(SteelSection):
-    pass
-
-
-@dataclass(frozen=True)
-class ColdFormed(SteelSection):
-    pass
+class HollowSection(SteelSection):
+    pass    
 
 
 @dataclass(frozen=True)
@@ -98,7 +68,7 @@ class RolledISection(RolledSection, ISection):
 
 
 @dataclass(frozen=True)
-class CircHollowSection(HollowSection, CircSection):
+class CircHollowSection(HollowSection):
     diameter: float
     wall_thickness: float
     weight: float
@@ -111,6 +81,7 @@ class CircHollowSection(HollowSection, CircSection):
     plastic_section_modulus: float
     torsion_constant: float
     torsion_modulus: float
+    manufacture_method: str
 
     def print_properties(self) -> None:
         # TODO: implement a nice way of printing the properties
@@ -118,10 +89,58 @@ class CircHollowSection(HollowSection, CircSection):
             "CircHollowSection.print_propteries() is not yet implemented"
         )
 
-
-class ColdCircHollowSection(ColdFormed, CircHollowSection):
-    pass
+@dataclass(frozen=True)
+class RectHollowSection(HollowSection):
+    height: float
+    width: float
+    wall_thickness: float
+    outer_corner_radius: float
+    inner_corner_radius: float
+    weight: float
+    perimeter: float
+    area: float
+    shear_area_z: float
+    shear_area_y: float
+    second_moment_of_area_y: float
+    radius_of_gyration_y: float
+    elastic_section_modulus_y: float
+    plastic_section_modulus_y: float
+    second_moment_of_area_z: float
+    radius_of_gyration_z: float
+    elastic_section_modulus_z: float
+    plastic_section_modulus_z: float
+    torsion_constant: float
+    torsion_modulus: float
+    manufacture_method: str
     
+    def print_properties(self) -> None:
+        # TODO: implement a nice way of printing the properties
+        raise NotImplementedError(
+            "RectHollowSection.print_propteries() is not yet implemented"
+        )
+        
 
-class HotCircHollowSection(HotFormed, CircHollowSection):
-    pass
+@dataclass(frozen=True)
+class SquareHollowSection(HollowSection):
+    width: float
+    wall_thickness: float
+    outer_corner_radius: float
+    inner_corner_radius: float
+    weight: float
+    perimeter: float
+    area: float
+    shear_area: float
+    second_moment_of_area: float
+    radius_of_gyration: float
+    elastic_section_modulus: float
+    plastic_section_modulus: float
+    torsion_constant: float
+    torsion_modulus: float
+    manufacture_method: str
+    
+    def print_properties(self) -> None:
+        # TODO: implement a nice way of printing the properties
+        raise NotImplementedError(
+            "SquareHollowSection.print_propteries() is not yet implemented"
+        )
+    
