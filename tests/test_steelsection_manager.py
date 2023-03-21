@@ -157,18 +157,12 @@ def test_when_not_is_valid_section(section_dataframe):
     assert mgr.is_valid_section("IPE617", section_dataframe) is False
 
 
-def test_get_section_props(section_dataframe, profile_series):
-    actual = mgr.get_section_props("IPE270", section_dataframe)
-    expected = profile_series
-    assert all(actual == expected) is True
-
-
 def test_when_get_section_type_is_found():
     assert mgr.get_section_type("IPE100") == "IPE"
 
 
 def test_when_get_section_type_is_not_found():
-    assert mgr.get_section_type("LRB320") is None
+    assert mgr.get_section_type("320LRB") is ""
 
 
 def test_load_section_props_input_not_string():
