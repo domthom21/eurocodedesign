@@ -43,13 +43,6 @@ def get_data_path() -> Path:
     return Path(os.path.dirname(os.path.realpath(__file__))) / "_data"
 
 
-def select_section_class(section_name):
-    # returns the class of the section
-    section_type = get_section_type(section_name)
-    if SECTION_DATA[section_type]["section_type"] == "RolledISection":
-        return RolledISection
-
-
 def is_valid_type(section_name: str) -> bool:
     # returns true if the database csv exists for the chosen profile type exists
     for section_type in SECTION_DATA.keys():
@@ -79,12 +72,12 @@ def get_section_props(section: str, section_df: pd.DataFrame) -> pd.Series:
     return section_df.loc[section]
 
 
-def get_section_type(section: str) -> str | None:
-    # extracts the type of section from name of the section
+def get_section_type(section_name: str) -> str:
+    # extracts the type of section from name of the section.
+    # assumes the section type is valid and exists in SECTION_DATA
     for section_type in SECTION_DATA.keys():
-        if section_type in section:
+        if section_type in section_name:
             return section_type
-    return None
 
 
 def load_section_props(section_name: str) -> pd.Series:
@@ -94,12 +87,13 @@ def load_section_props(section_name: str) -> pd.Series:
     else:
         if is_valid_type(section_name):
             section_type = get_section_type(section_name)
-            if section_type is None:
-                # todo: raise error flagging that section is not in database
-                pass
             section_db = import_section_database(section_type)
             if is_valid_section(section_name, section_db):
                 return get_section_props(section_name, section_db)
+            else:
+                raise ValueError(f"Invalid section name: '{section_name}'")
+        else:
+            raise ValueError(f"Invalid section type for section: '{section_name}'")
 
 
 def get_section(section_name: str) -> SteelSection:
@@ -111,6 +105,6 @@ def get_section(section_name: str) -> SteelSection:
 
 
 if __name__ == "__main__":
-    a = "CHS60.3x2.5"
+    a = "IPE240"
     prof = get_section(a)
     print(prof)
