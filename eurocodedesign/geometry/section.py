@@ -9,10 +9,3 @@ from dataclasses import dataclass, field
 @dataclass(frozen=True)
 class BasicSection(ABC):
     name: str = field(compare=False)
-
-    def __str__(self) -> str:
-        return self.name
-
-    @abstractmethod
-    def print_properties(self) -> None:
-        pass
