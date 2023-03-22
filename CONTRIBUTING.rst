@@ -19,7 +19,7 @@ Report bugs at https://github.com/domthom21/eurocodedesign/issues.
 
 If you are reporting a bug, please include:
 
-* Your operating system name and version.
+* The used library version.
 * Any details about your local setup that might be helpful in troubleshooting.
 * Detailed steps to reproduce the bug.
 
@@ -72,7 +72,7 @@ Ready to contribute? Here's how to set up `eurocodedesign` for local development
 
 4. Create a branch for local development::
 
-    $ git checkout -b name-of-your-bugfix-or-feature
+    $ git switch -c name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
@@ -102,7 +102,7 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 3.5, 3.6, 3.7 and 3.8, and for PyPy. Check
+3. The pull request should work for Python 3.10, 3.11 and for PyPy. Check
    https://travis-ci.com/domthom21/eurocodedesign/pull_requests
    and make sure that the tests pass for all supported Python versions.
 
