@@ -56,5 +56,5 @@ def test_property_G(S235_thick_material):
     assert S235_thick_material.G == 81_000
 
 
-def test_property_G(S235_thick_material):
+def test_property_alpha(S235_thick_material):
     assert S235_thick_material.alpha == 1.2e-7
