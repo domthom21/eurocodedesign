@@ -2,7 +2,7 @@
 """
 
 from pytest import fixture
-from eurocodedesign.material.constructionsteel import S235
+from eurocodedesign.materials.structuralsteel import S235
 
 
 @fixture
