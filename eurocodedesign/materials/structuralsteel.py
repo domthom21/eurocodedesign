@@ -119,7 +119,11 @@ Definitions
 def get(
     steel_type: str, thickness_less_than_equal_40mm: bool = True
 ) -> BasicStructuralSteel:
-    return STEEL_TYPES[steel_type](thickness_less_than_equal_40mm)
+    
+    if steel_type in STEEL_TYPES.keys():
+        return STEEL_TYPES[steel_type](thickness_less_than_equal_40mm)
+    else:
+        raise KeyError(f"Steel material '{steel_type}' not in library")
 
 
 if __name__ == "__main__":

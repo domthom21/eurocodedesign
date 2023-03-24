@@ -44,7 +44,7 @@ def test_get_for_structural_steel_types_with_steel_in_library_t_greater_40(
 
 
 def test_get_for_structural_steel_types_with_steel_not_in_library():
-    with raises(KeyError):
+    with raises(KeyError, match= "Steel material '211' not in library"):
         ss.get("211", True)
 
 
