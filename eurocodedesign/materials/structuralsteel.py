@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
-class BasicSteel:
+class BasicStructuralSteel:
     thickness_less_than_40mm: bool = True
     elastic_modulus: float = field(default=210_000, kw_only=True)
     shear_modulus: float = field(default=81_000, kw_only=True)
@@ -44,7 +44,7 @@ class BasicSteel:
 
 
 @dataclass(frozen=True)
-class S235(BasicSteel):
+class S235(BasicStructuralSteel):
     name: float = field(default="S235", kw_only=True)
     fy_thin: float = field(default=235, kw_only=True)
     fu_thin: float = field(default=360, kw_only=True)
@@ -54,7 +54,7 @@ class S235(BasicSteel):
 
 
 @dataclass(frozen=True)
-class S275(BasicSteel):
+class S275(BasicStructuralSteel):
     name: float = field(default="S275", kw_only=True)
     fy_thin: float = field(default=275, kw_only=True)
     fu_thin: float = field(default=430, kw_only=True)
@@ -64,7 +64,7 @@ class S275(BasicSteel):
 
 
 @dataclass(frozen=True)
-class S355(BasicSteel):
+class S355(BasicStructuralSteel):
     name: float = field(default="S355", kw_only=True)
     fy_thin: float = field(default=355, kw_only=True)
     fu_thin: float = field(default=490, kw_only=True)
@@ -74,7 +74,7 @@ class S355(BasicSteel):
 
 
 @dataclass(frozen=True)
-class S450(BasicSteel):
+class S450(BasicStructuralSteel):
     name: float = field(default="S450", kw_only=True)
     fy_thin: float = field(default=440, kw_only=True)
     fu_thin: float = field(default=550, kw_only=True)
@@ -84,13 +84,18 @@ class S450(BasicSteel):
 
 
 """ 
-module constants
+constants
 """
 
 STEEL_TYPES = {"S235": S235, "S275": S275, "S355": S355, "S450": S450}
 
 
+""" 
+definitions
+"""
 
+def get(steel_type: str) -> BasicStructuralSteel:
+    pass
 
 
 if __name__ == "__main__":
