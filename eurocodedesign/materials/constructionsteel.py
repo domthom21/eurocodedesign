@@ -50,6 +50,47 @@ class S235(BasicSteel):
     fu_thin: float = field(default=360, kw_only=True)
     fy_thick: float = field(default=215, kw_only=True)
     fu_thick: float = field(default=360, kw_only=True)
+    norm: str = field(default="EN 10025-2", kw_only=True)
+
+
+@dataclass(frozen=True)
+class S275(BasicSteel):
+    name: float = field(default="S275", kw_only=True)
+    fy_thin: float = field(default=275, kw_only=True)
+    fu_thin: float = field(default=430, kw_only=True)
+    fy_thick: float = field(default=255, kw_only=True)
+    fu_thick: float = field(default=410, kw_only=True)
+    norm: str = field(default="EN 10025-2", kw_only=True)
+
+
+@dataclass(frozen=True)
+class S355(BasicSteel):
+    name: float = field(default="S355", kw_only=True)
+    fy_thin: float = field(default=355, kw_only=True)
+    fu_thin: float = field(default=490, kw_only=True)
+    fy_thick: float = field(default=335, kw_only=True)
+    fu_thick: float = field(default=470, kw_only=True)
+    norm: str = field(default="EN 10025-2", kw_only=True)
+
+
+@dataclass(frozen=True)
+class S450(BasicSteel):
+    name: float = field(default="S450", kw_only=True)
+    fy_thin: float = field(default=440, kw_only=True)
+    fu_thin: float = field(default=550, kw_only=True)
+    fy_thick: float = field(default=410, kw_only=True)
+    fu_thick: float = field(default=550, kw_only=True)
+    norm: str = field(default="EN 10025-2", kw_only=True)
+
+
+""" 
+module constants
+"""
+
+STEEL_TYPES = {"S235": S235, "S275": S275, "S355": S355, "S450": S450}
+
+
+
 
 
 if __name__ == "__main__":
