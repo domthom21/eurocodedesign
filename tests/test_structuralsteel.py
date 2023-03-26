@@ -16,19 +16,19 @@ def S235_thick_material():
 
 
 def test_fy_getter_with_thin_material(S235_thin_material):
-    assert S235_thin_material.fy == 235
+    assert S235_thin_material.f_yk == 235
 
 
 def test_fu_getter_with_thin_material(S235_thin_material):
-    assert S235_thin_material.fu == 360
+    assert S235_thin_material.f_uk == 360
 
 
 def test_fy_getter_with_thick_material(S235_thick_material):
-    assert S235_thick_material.fy == 215
+    assert S235_thick_material.f_yk == 215
 
 
 def test_fu_getter_with_thick_material(S235_thick_material):
-    assert S235_thick_material.fu == 360
+    assert S235_thick_material.f_uk == 360
 
 
 def test_get_for_structural_steel_types_with_steel_in_library_t_less_equal_40(
@@ -44,7 +44,7 @@ def test_get_for_structural_steel_types_with_steel_in_library_t_greater_40(
 
 
 def test_get_for_structural_steel_types_with_steel_not_in_library():
-    with raises(KeyError, match= "Steel material '211' not in library"):
+    with raises(ValueError, match= "Steel material '211' not in library"):
         ss.get("211", True)
 
 
