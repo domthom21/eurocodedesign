@@ -1,7 +1,7 @@
 """ Material properties of structural steel 
 
 Classes defining the different types of construction steel that are permitted 
-with in the Eurocode framework. The different steel types are defined by the
+within the Eurocode framework. The different steel types are defined by the
 following standards:
     -- EN 10025-2
     -- EN 10025-3
@@ -19,8 +19,8 @@ Example Usage:
     steel_material = ss.get("S235", True) # S235 steel material with thickness <= 40 mm
     steel_material = ss.get("S355", False) # S355 steel material with thickness >= 40 mm
     
-    yield_stress = steel_material.fy
-    ultimate_stress = steel_material.fu
+    yield_stress = steel_material.f_yk
+    ultimate_stress = steel_material.f_uk
     
     elastic_modulus = steel_material.E 
     shear_modulus = steel_material.G
@@ -32,22 +32,22 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class BasicStructuralSteel:
-    _thickness_less_than_equal_40mm: bool = True
+    _thickness_le_40mm: bool = True
     _elastic_modulus: float = field(default=210_000, kw_only=True)
     _shear_modulus: float = field(default=81_000, kw_only=True)
     _thermal_coefficient: float = field(default=1.2e-7, kw_only=True)  # 1/K
     poissons_ratio: float = field(default=0.3, kw_only=True)
 
     @property
-    def fy(self):
-        if self._thickness_less_than_equal_40mm:
+    def f_yk(self):
+        if self._thickness_le_40mm:
             return self._fy_thin
         else:
             return self._fy_thick
 
     @property
-    def fu(self):
-        if not self._thickness_less_than_equal_40mm:
+    def f_uk(self):
+        if not self._thickness_le_40mm:
             return self._fu_thin
         else:
             return self._fu_thick
@@ -123,8 +123,4 @@ def get(
     if steel_type in STEEL_TYPES.keys():
         return STEEL_TYPES[steel_type](thickness_less_than_equal_40mm)
     else:
-        raise KeyError(f"Steel material '{steel_type}' not in library")
-
-
-if __name__ == "__main__":
-    steel = get("s121")
+        raise ValueError(f"Steel material '{steel_type}' not in library")
