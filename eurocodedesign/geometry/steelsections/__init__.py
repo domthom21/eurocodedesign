@@ -199,8 +199,13 @@ def _import_section_database(section_type: str) -> pd.DataFrame:
         pd.DataFrame: containing all the geometric data for
         the profiles for the provided section_type
     """
-    filepath = _get_data_path() / str(_SECTION_DATA[section_type]["filename"])
-    return pd.read_csv(filepath, index_col=0)
+
+    filepath = _get_data_path() / _SECTION_DATA[section_type]["filename"]
+    df = pd.read_csv(filepath, index_col=0)
+    df = df.iloc[1:]
+    cols = df.columns.difference(['manufacture'])
+    df[cols] = df[cols].astype(float)
+    return df
 
 
 def _is_valid_section(section: str, section_df: pd.DataFrame) -> bool:
