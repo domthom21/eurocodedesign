@@ -192,7 +192,11 @@ def _import_section_database(section_type: str) -> pd.DataFrame:
             provided section_type
     """
     filepath = _get_data_path() / _SECTION_DATA[section_type]["filename"]
-    return pd.read_csv(filepath, index_col=0)
+    df = pd.read_csv(filepath, index_col=0)
+    df = df.iloc[1:]
+    cols = df.columns.difference(['manufacture'])
+    df[cols] = df[cols].astype(float)
+    return df
 
 
 def _is_valid_section(section: str, section_df: pd.DataFrame) -> bool:
@@ -284,5 +288,5 @@ def get(section_name: str) -> SteelSection:
 
 if __name__ == "__main__":
     a = "IPE240"
-    prof = get(a)
-    print(prof)
+    profile = get(a)
+    print(type(profile.height))
