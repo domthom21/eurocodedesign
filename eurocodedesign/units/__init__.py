@@ -47,7 +47,7 @@ class AbstractUnit(ABC):
     _power = 1
     _physical_type: PhysicalType
 
-    def _is_prefix_allowed(type: PhysicalType):
+    def _is_prefix_allowed(self, type: PhysicalType):
         return type not in (PhysicalType.TIME,
                             PhysicalType.ANGLE,
                             PhysicalType.MASS,
@@ -55,7 +55,7 @@ class AbstractUnit(ABC):
 
     def __init__(self, value: float = 1.0, prefix: Prefix = Prefix.none):
         if (prefix != Prefix.none and
-            not self._is_prefix_allowed(self._physical_type)):
+            not self._is_prefix_allowed(prefix)):
             raise ValueError(f'Metric prefix {prefix} not supported'
                              f' for type {type(self)}')
         self._unit = self.__class__
@@ -67,20 +67,19 @@ class AbstractUnit(ABC):
         prefix = self._prefix.name if self._prefix != Prefix.none else ''
         return f"{value} {prefix}{self._unit.__name__}"
 
-    def __repr__(self):
-        raise NotImplementedError
-
     def __repr_latex_(self):
         raise NotImplementedError
 
     def __add__(self, other: Self):
-        if self._physical_type != other._physical_type:
+        if (type(self) != type(other) or
+            self._physical_type != other._physical_type):
             raise TypeError(f'Addition not allowed for'
                             f' type {type(self)} and {type(other)}')
         return type(self)(self._value + other._value, self._prefix)
 
     def __sub__(self, other: Self):
-        if self._physical_type != other._physical_type:
+        if (type(self) != type(other) or
+            self._physical_type != other._physical_type):
             raise TypeError(f'Subtraction not allowed for '
                             f'type {type(self)} and {type(other)}')
         return type(self)(self._value - other._value, self._prefix)
@@ -114,6 +113,9 @@ class AbstractUnit(ABC):
         self_type = type(self)
         other_type = type(other)
 
+        if self_type == other_type:
+            return float(self._value/other._value)
+
         if self_type not in _allowed_multiplications.values():
             raise TypeError('No divisions by another unit allowed'
                             f' for f{self_type}')
@@ -129,32 +131,38 @@ class AbstractUnit(ABC):
                         f'{other_type} not allowed.')
 
     def __lt__(self, other: Self):
-        if self._physical_type != other._physical_type:
+        if (type(self) != type(other) or
+            self._physical_type != other._physical_type):
             raise TypeError
         return self._value < other._value
 
     def __le__(self, other: Self):
-        if self._physical_type != other._physical_type:
+        if (type(self) != type(other) or
+            self._physical_type != other._physical_type):
             raise TypeError
         return self._value <= other._value
 
     def __eq__(self, other: Self):
-        if self._physical_type != other._physical_type:
+        if (type(self) != type(other) or
+            self._physical_type != other._physical_type):
             raise TypeError
         return self._value == other._value
 
     def __ne__(self, other: Self):
-        if self._physical_type != other._physical_type:
+        if (type(self) != type(other) or
+            self._physical_type != other._physical_type):
             raise TypeError
         return not (self == other)
 
     def __ge__(self, other: Self):
-        if self._physical_type != other._physical_type:
+        if (type(self) != type(other) or
+            self._physical_type != other._physical_type):
             raise TypeError
         return self._value >= other._value
 
     def __gt__(self, other: Self):
-        if self._physical_type != other._physical_type:
+        if (type(self) != type(other) or
+            self._physical_type != other._physical_type):
             raise TypeError
         return self._value > other._value
 
@@ -235,6 +243,8 @@ _allowed_multiplications = {
 
 N: TypeAlias = Newton
 m: TypeAlias = Meter
+m2: TypeAlias = Meter_2
+Pa: TypeAlias = Pascal
 
 kiloNewton = partial(Newton, prefix=Prefix.kilo)
 kN: TypeAlias = kiloNewton
