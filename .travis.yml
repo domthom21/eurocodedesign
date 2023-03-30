@@ -6,7 +6,7 @@ python:
   - "3.10"
  # - "3.11" not supported by travis up to Ubuntu 22.04 (Jammy)
 
-before_install: python -m pip install --upgrade pip
+before_install: python -m pip3 install --upgrade pip
 install: pip install -r requirements_dev.txt # tox-travis
 
 # Command to run tests, e.g. python setup.py test
