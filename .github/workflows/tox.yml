@@ -1,10 +1,9 @@
 name: Python package
 
-on: [push, pull-request]
+on: [push, pull_request]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
