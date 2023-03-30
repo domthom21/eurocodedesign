@@ -4,7 +4,7 @@ dist: jammy
 language: python
 python:
   - "3.10"
- # - "3.11" not supported by travis up to Ubuntu 22.04 (Jammy)
+  - "3.11"
 
 before_install: python -m pip install --upgrade pip
 install: pip install -r requirements_dev.txt # tox-travis
