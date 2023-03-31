@@ -43,7 +43,7 @@ class HollowSection(SteelSection):
 class RolledISection(RolledSection, ISection):
     height: float
     flange_width: float
-    web_thickeness: float
+    web_thickness: float
     flange_thickness: float
     root_radius: float
     weight: float
