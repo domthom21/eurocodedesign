@@ -1,6 +1,6 @@
-""" Material properties of structural steel 
+""" Material properties of structural steel
 
-Classes defining the different types of construction steel that are permitted 
+Classes defining the different types of construction steel that are permitted
 within the Eurocode framework. The different steel types are defined by the
 following standards:
     -- EN 10025-2
@@ -10,21 +10,23 @@ following standards:
     -- EN 10025-6
     -- EN 10210-1
     -- EN 10219-1
-    
+
 All material strengths are given in MPa (N/mm2) unless otherwise indicated
 
 Example Usage:
 
     import eurocodedesign.materials.structuralsteel as ss
-    steel_material = ss.get("S235", True) # S235 steel material with thickness <= 40 mm
-    steel_material = ss.get("S355", False) # S355 steel material with thickness >= 40 mm
-    
+    # S235 steel material with thickness <= 40 mm
+    steel_material = ss.get("S235", True)
+    # S355 steel material with thickness >= 40 mm
+    steel_material = ss.get("S355", False)
+
     yield_stress = steel_material.f_yk
     ultimate_stress = steel_material.f_uk
-    
-    elastic_modulus = steel_material.E 
+
+    elastic_modulus = steel_material.E
     shear_modulus = steel_material.G
-    thermal_coefficient = steel_material.alpha  
+    thermal_coefficient = steel_material.alpha
 """
 
 from dataclasses import dataclass, field
@@ -105,13 +107,13 @@ class S450(BasicStructuralSteel):
     norm: str = field(default="EN 10025-2", kw_only=True)
 
 
-""" 
+"""
 Constants
 """
 
 STEEL_TYPES = {"S235": S235, "S275": S275, "S355": S355, "S450": S450}
 
-""" 
+"""
 Definitions
 """
 
@@ -119,7 +121,7 @@ Definitions
 def get(
     steel_type: str, thickness_less_than_equal_40mm: bool = True
 ) -> BasicStructuralSteel:
-    
+
     if steel_type in STEEL_TYPES.keys():
         return STEEL_TYPES[steel_type](thickness_less_than_equal_40mm)
     else:

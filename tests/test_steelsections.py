@@ -1,4 +1,4 @@
-""" 
+"""
 tests for the module responsible for loading steel section geometry
 eurocodedesign.geometry.steelsection.manager
 """
@@ -59,7 +59,6 @@ def dummy_IPE270():
 @pytest.fixture
 def IPE_dataframe():
     # set up test section database for the
-    index = ["IPE100", "IPE270"]
     geometric_properties_IPE270 = [
         270,
         135,
@@ -137,15 +136,15 @@ def IPE_dataframe():
 
 
 def test_when_is_valid_type():
-    assert ss._is_valid_type("HEM600") == True
+    assert ss._is_valid_type("HEM600") is True
 
 
 def test_when_not_is_valid_type_with_empty_string():
-    assert ss._is_valid_type("") == False
+    assert ss._is_valid_type("") is False
 
 
 def test_when_not_is_valid_type_with_invalid_name():
-    assert ss._is_valid_type("XRX120") == False
+    assert ss._is_valid_type("XRX120") is False
 
 
 def test_when_is_valid_section(section_dataframe):
@@ -161,26 +160,26 @@ def test_when_get_section_type_is_found():
 
 
 def test_when_get_section_type_is_not_found():
-    assert ss._get_section_type("320LRB") is ""
+    assert ss._get_section_type("320LRB") == ""
 
 
 def test_load_section_props_input_not_string():
-    with pytest.raises(ValueError) as error_info:
-     ss._load_section_props(2)
+    with pytest.raises(ValueError):
+        ss._load_section_props(2)
 
 
 def test_load_section_props_input_is_wrong_type():
     with pytest.raises(
         ValueError, match="Invalid section type for section: 'XYZ281'"
-    ) as error_info:
-     ss._load_section_props("XYZ281")
+    ):
+        ss._load_section_props("XYZ281")
 
 
 def test_load_section_props_input_is_wrong_section():
     with pytest.raises(
         ValueError, match="Invalid section name: 'IPE281'"
-    ) as error_info:
-     ss._load_section_props("IPE281")
+    ):
+        ss._load_section_props("IPE281")
 
 
 @patch("eurocodedesign.geometry.steelsections._import_section_database")
@@ -192,7 +191,8 @@ def test_load_section_props_for_valid_section_name(
     expected = profile_series
     assert all(actual == expected) is True
 
+
 @patch("eurocodedesign.geometry.steelsections._import_section_database")
 def test_get_section(section_data, IPE_dataframe, dummy_IPE270):
     section_data.return_value = IPE_dataframe
-    assert ss._get_section("IPE270")==dummy_IPE270
+    assert ss._get_section("IPE270") == dummy_IPE270
