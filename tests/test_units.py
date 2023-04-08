@@ -8,6 +8,12 @@ from eurocodedesign.units import (Newton,
 
 class TestUnits:
 
+    def test_type_declaration(self):
+
+    def test_unit_as_float(self):
+        l: Meter = 2*m()
+        assert l.as_float() == 2.0
+
     def test_addition_subtraction(self):
         a: Meter_2 = 3*Meter_2()
         l: Meter = 2*m()
@@ -25,6 +31,7 @@ class TestUnits:
         assert a == 25*m2()
         e: Joule = 15*J()
         assert (l*f) == e
+        assert l*5 == 25*m()
 
     def test_division(self):
         e: J = 15 * J()
