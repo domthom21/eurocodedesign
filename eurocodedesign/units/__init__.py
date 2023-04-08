@@ -3,10 +3,10 @@ from enum import Enum, unique, auto
 from functools import partial
 from typing import Self, TypeAlias
 
+# TODO add package description with examples
 
 @unique
 class PhysicalType(Enum):
-    DIMENSIONLESS = auto()
     ANGLE = auto()
     TIME = auto()
     LENGTH = auto()
@@ -37,12 +37,9 @@ class Prefix(Enum):
     nano = n = 1e-9
 
 
-_allowed_multiplications = {}
-
-
 class AbstractUnit(ABC):
-    _value: float = 1.0
-    _prefix: Prefix = Prefix.none
+    _value: float
+    _prefix: Prefix
     _unit: Self
     _power = 1
     _physical_type: PhysicalType
@@ -62,7 +59,7 @@ class AbstractUnit(ABC):
         self._prefix = prefix
         self._value = value * float(prefix.value ** self._power)
 
-    def __str__(self):
+    def __str__(self) -> str:
         value = self._value / (self._prefix.value ** self._power)
         prefix = self._prefix.name if self._prefix != Prefix.none else ''
         return f"{value} {prefix}{self._unit.__name__}"
@@ -70,21 +67,21 @@ class AbstractUnit(ABC):
     def __repr_latex_(self):
         raise NotImplementedError
 
-    def __add__(self, other: Self):
+    def __add__(self, other: Self) -> Self:
         if (type(self) != type(other) or
             self._physical_type != other._physical_type):
             raise TypeError(f'Addition not allowed for'
                             f' type {type(self)} and {type(other)}')
         return type(self)(self._value + other._value, self._prefix)
 
-    def __sub__(self, other: Self):
+    def __sub__(self, other: Self) -> Self:
         if (type(self) != type(other) or
             self._physical_type != other._physical_type):
             raise TypeError(f'Subtraction not allowed for '
                             f'type {type(self)} and {type(other)}')
         return type(self)(self._value - other._value, self._prefix)
 
-    def __mul__(self, other: Self | float | int):
+    def __mul__(self, other: Self | float | int) -> Self:
         if isinstance(other, (int, float)):
             return type(self)(self._value * other /
                               (self._prefix.value
@@ -130,47 +127,50 @@ class AbstractUnit(ABC):
         raise TypeError(f'Division of {self_type} by '
                         f'{other_type} not allowed.')
 
-    def __lt__(self, other: Self):
+    def __lt__(self, other: Self) -> bool:
         if (type(self) != type(other) or
             self._physical_type != other._physical_type):
             raise TypeError
         return self._value < other._value
 
-    def __le__(self, other: Self):
+    def __le__(self, other: Self) -> bool:
         if (type(self) != type(other) or
             self._physical_type != other._physical_type):
             raise TypeError
         return self._value <= other._value
 
-    def __eq__(self, other: Self):
+    def __eq__(self, other: Self) -> bool:
         if (type(self) != type(other) or
             self._physical_type != other._physical_type):
             raise TypeError
         return self._value == other._value
 
-    def __ne__(self, other: Self):
+    def __ne__(self, other: Self) -> bool:
         if (type(self) != type(other) or
             self._physical_type != other._physical_type):
             raise TypeError
         return not (self == other)
 
-    def __ge__(self, other: Self):
+    def __ge__(self, other: Self) -> bool:
         if (type(self) != type(other) or
             self._physical_type != other._physical_type):
             raise TypeError
         return self._value >= other._value
 
-    def __gt__(self, other: Self):
+    def __gt__(self, other: Self) -> bool:
         if (type(self) != type(other) or
             self._physical_type != other._physical_type):
             raise TypeError
         return self._value > other._value
 
-    def to(self, prefix: Prefix):
-        """
-        Convert unit prefix to given prefix
-        @param prefix: Prefix,
-        @return: None
+    def to(self, prefix: Prefix) -> None:
+        """Convert unit prefix to given prefix
+
+        Args:
+            prefix:
+
+        Returns: None
+
         """
         if not self._is_prefix_allowed(prefix):
             raise TypeError(f"Prefix {prefix} not allowed for {type(self)}")
@@ -244,7 +244,11 @@ _allowed_multiplications = {
 N: TypeAlias = Newton
 m: TypeAlias = Meter
 m2: TypeAlias = Meter_2
+m3: TypeAlias = Meter_3
+m4: TypeAlias = Meter_4
 Pa: TypeAlias = Pascal
+Nm: TypeAlias = Joule
+J: TypeAlias = Joule
 
 kiloNewton = partial(Newton, prefix=Prefix.kilo)
 kN: TypeAlias = kiloNewton
@@ -252,4 +256,5 @@ kN: TypeAlias = kiloNewton
 MegaPascal = partial(Pascal, prefix=Prefix.mega)
 MPa: TypeAlias = MegaPascal
 
-J: TypeAlias = Joule
+
+
