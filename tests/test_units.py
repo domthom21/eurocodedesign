@@ -2,17 +2,15 @@ import pytest
 from eurocodedesign.units import (Newton,
                                   Meter,
                                   Meter_2,
-                                  N, kN, m, m2, Pa, J,
+                                  N, kN, m, m2, cm, cm2, Pa, J,
                                   Joule, Prefix)
 
 
 class TestUnits:
 
-    def test_type_declaration(self):
-
-    def test_unit_as_float(self):
-        l: Meter = 2*m()
-        assert l.as_float() == 2.0
+    def test_unit_to_numeric(self):
+        f: kN = 2*kN()
+        assert f.to_numeric() == 2000.0
 
     def test_addition_subtraction(self):
         a: Meter_2 = 3*Meter_2()
@@ -51,7 +49,7 @@ class TestUnits:
     def test_comparison(self):
         l1 = 1*m()
         l2 = 2*m()
-        l3 = 1*m()
+        l3 = 100*cm()
         assert l1 == l3
         assert l1 <= l2
         assert l1 < l2
@@ -59,10 +57,12 @@ class TestUnits:
         assert l2 >= l1
         assert l1 != l2
         with pytest.raises(TypeError):
-           l1 == 1
+            l1 == 1
 
-    def test_str(self):
+    def test_to_str(self):
         f: Newton = 1.3*kN()
-        assert str(f) == '1.3 kiloNewton'
+        assert str(f) == r'1.3 kN'
         f.to(Prefix.none)
-        assert str(f) == '1300.0 Newton'
+        assert str(f) == r'1300.0 N'
+        a: m2 = 100*cm2()
+        assert str(a) == r'100.0 cm²'
