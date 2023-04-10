@@ -1,9 +1,26 @@
+"""
+Eurocodedesign unit module
+
+Module for easy wrangling with unit values.
+
+Examples
+-------
+>>> from eurocodedesign.units import (kN, m, cm2, N)
+>>> 5*kN() + 3*N()
+5003.0 N
+>>> N() + m()
+TypeError: Addition not allowed for type <class 'eurocodedesign.units.Newton'>
+ and <class 'eurocodedesign.units.Meter'>
+>>> N()*m()
+1.0 J
+>>> str(100*cm2)
+100.0 cm²
+"""
 from abc import ABC
 from enum import Enum, unique, auto
 from functools import partial
 from typing import Self, TypeAlias
 
-# TODO add package description with examples
 
 @unique
 class PhysicalType(Enum):
@@ -24,23 +41,24 @@ class PhysicalType(Enum):
 
 class Prefix(Enum):
     "Metric prefixes from nano (1e-9) to giga (1e9)"
-    giga = G = 1e9
-    mega = M = 1e6
-    kilo = k = 1e3
-    hecto = h = 1e2
-    deca = da = 1e1
+    G = giga = 1e9
+    M = mega = 1e6
+    k = kilo = 1e3
+    h = hecto = 1e2
+    da = deca = 1e1
     none = one = 1e0
-    deci = d = 1e-1
-    centi = c = 1e-2
-    milli = m = 1e-3
-    micro = µ = 1e-6
-    nano = n = 1e-9
+    d = deci = 1e-1
+    c = centi = 1e-2
+    m = milli = 1e-3
+    µ = micro = 1e-6
+    n = nano = 1e-9
 
 
 class AbstractUnit(ABC):
     _value: float
     _prefix: Prefix
     _unit: Self
+    _unit_str: str
     _power = 1
     _physical_type: PhysicalType
 
@@ -52,7 +70,7 @@ class AbstractUnit(ABC):
 
     def __init__(self, value: float = 1.0, prefix: Prefix = Prefix.none):
         if (prefix != Prefix.none and
-            not self._is_prefix_allowed(prefix)):
+                not self._is_prefix_allowed(prefix)):
             raise ValueError(f'Metric prefix {prefix} not supported'
                              f' for type {type(self)}')
         self._unit = self.__class__
@@ -62,24 +80,24 @@ class AbstractUnit(ABC):
     def __str__(self) -> str:
         value = self._value / (self._prefix.value ** self._power)
         prefix = self._prefix.name if self._prefix != Prefix.none else ''
-        return f"{value} {prefix}{self._unit.__name__}"
+        return f"{value} {prefix}{self._unit_str}"
 
     def __repr_latex_(self):
         raise NotImplementedError
 
     def __add__(self, other: Self) -> Self:
         if (type(self) != type(other) or
-            self._physical_type != other._physical_type):
+                self._physical_type != other._physical_type):
             raise TypeError(f'Addition not allowed for'
                             f' type {type(self)} and {type(other)}')
-        return type(self)(self._value + other._value, self._prefix)
+        return type(self)(self._value + other._value)
 
     def __sub__(self, other: Self) -> Self:
         if (type(self) != type(other) or
-            self._physical_type != other._physical_type):
+                self._physical_type != other._physical_type):
             raise TypeError(f'Subtraction not allowed for '
                             f'type {type(self)} and {type(other)}')
-        return type(self)(self._value - other._value, self._prefix)
+        return type(self)(self._value - other._value)
 
     def __mul__(self, other: Self | float | int) -> Self:
         if isinstance(other, (int, float)):
@@ -128,38 +146,38 @@ class AbstractUnit(ABC):
                         f'{other_type} not allowed.')
 
     def __lt__(self, other: Self) -> bool:
-        if (type(self) != type(other) or
-            self._physical_type != other._physical_type):
+        if (not isinstance(other, AbstractUnit) or
+                self._physical_type != other._physical_type):
             raise TypeError
         return self._value < other._value
 
     def __le__(self, other: Self) -> bool:
-        if (type(self) != type(other) or
-            self._physical_type != other._physical_type):
+        if (not isinstance(other, AbstractUnit) or
+                self._physical_type != other._physical_type):
             raise TypeError
         return self._value <= other._value
 
     def __eq__(self, other: Self) -> bool:
-        if (type(self) != type(other) or
-            self._physical_type != other._physical_type):
+        if (not isinstance(other, AbstractUnit) or
+                self._physical_type != other._physical_type):
             raise TypeError
         return self._value == other._value
 
     def __ne__(self, other: Self) -> bool:
-        if (type(self) != type(other) or
-            self._physical_type != other._physical_type):
+        if (not isinstance(other, AbstractUnit) or
+                self._physical_type != other._physical_type):
             raise TypeError
         return not (self == other)
 
     def __ge__(self, other: Self) -> bool:
-        if (type(self) != type(other) or
-            self._physical_type != other._physical_type):
+        if (not isinstance(other, AbstractUnit) or
+                self._physical_type != other._physical_type):
             raise TypeError
         return self._value >= other._value
 
     def __gt__(self, other: Self) -> bool:
-        if (type(self) != type(other) or
-            self._physical_type != other._physical_type):
+        if (not isinstance(other, AbstractUnit) or
+                self._physical_type != other._physical_type):
             raise TypeError
         return self._value > other._value
 
@@ -177,56 +195,80 @@ class AbstractUnit(ABC):
         self._prefix = prefix
         return
 
+    def to_numeric(self) -> float:
+        """
+        Return the unit value as float of base unit
+        Returns: Current unit value as float
+
+        Examples
+        >>> (3*kN()).to_numeric()
+        3000.0
+
+        """
+        return float(self._value)
+
 
 class Seconds(AbstractUnit):
     _physical_type = PhysicalType.TIME
+    _unit_str = "s"
 
 
 class Meter(AbstractUnit):
     _physical_type = PhysicalType.LENGTH
+    _unit_str = "m"
 
 
 class Meter_2(AbstractUnit):
     _power = 2
     _physical_type = PhysicalType.AREA
+    _unit_str = "m²"
 
 
 class Meter_3(AbstractUnit):
     _power = 3
     _physical_type = PhysicalType.VOLUME
+    _unit_str = "m³"
 
 
 class Meter_4(AbstractUnit):
     _power = 4
     _physical_type = PhysicalType.SECOND_MOMENT_OF_AREA
+    _unit_str = "m⁴"
 
 
 class Meter_per_Second(AbstractUnit):
     _physical_type = PhysicalType.SPEED
+    _unit_str = "m/s"
 
 
 class Meter_per_Second_2(AbstractUnit):
     _physical_type = PhysicalType.ACCELERATION
+    _unit_str = "m/s²"
 
 
 class Kilogram(AbstractUnit):
     _physical_type = PhysicalType.MASS
+    _unit_str = "kg"
 
 
 class Newton(AbstractUnit):
     _physical_type = PhysicalType.FORCE
+    _unit_str = "N"
 
 
 class Pascal(AbstractUnit):
     _physical_type = PhysicalType.PRESSURE
+    _unit_str = "Pa"
 
 
 class Joule(AbstractUnit):
     _physical_type = PhysicalType.ENERGY
+    _unit_str = "J"
 
 
 class Kelvin(AbstractUnit):
     _physical_type = PhysicalType.TEMPERATURE
+    _unit_str = "K"
 
 
 _allowed_multiplications = {
@@ -247,14 +289,27 @@ m2: TypeAlias = Meter_2
 m3: TypeAlias = Meter_3
 m4: TypeAlias = Meter_4
 Pa: TypeAlias = Pascal
+Newtonmeter: TypeAlias = Joule
 Nm: TypeAlias = Joule
 J: TypeAlias = Joule
+
+
+centimeter = partial(Meter, prefix=Prefix.centi)
+cm: TypeAlias = centimeter
+millimeter = partial(Meter, prefix=Prefix.milli)
+mm: TypeAlias = millimeter
+
+square_centimeter = partial(Meter_2, prefix=Prefix.centi)
+cm2: TypeAlias = square_centimeter
+square_millimeter = partial(Meter_2, prefix=Prefix.milli)
+mm2: TypeAlias = square_millimeter
+cubic_centimeter = partial(Meter_3, prefix=Prefix.centi)
+cm3: TypeAlias = cubic_centimeter
+
 
 kiloNewton = partial(Newton, prefix=Prefix.kilo)
 kN: TypeAlias = kiloNewton
 
+GigaPascal = partial(Pascal, prefix=Prefix.giga)
 MegaPascal = partial(Pascal, prefix=Prefix.mega)
 MPa: TypeAlias = MegaPascal
-
-
-
