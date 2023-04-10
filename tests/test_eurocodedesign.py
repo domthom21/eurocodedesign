@@ -5,7 +5,7 @@
 import pytest
 
 
-from eurocodedesign import eurocodedesign
+from eurocodedesign import eurocodedesign as ed # noqa
 
 
 @pytest.fixture
