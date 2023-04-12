@@ -48,14 +48,17 @@ class Stepper:
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def _flush(self) -> None:
         string = str(self)
         if string:
             print(self)
         self._steps.clear()
 
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self._flush()
+
     def __del__(self) -> None:
-        self.__exit__()
+        self._flush()
 
 
 def create() -> Stepper:
