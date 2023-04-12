@@ -20,7 +20,7 @@ from typing import Self
 
 class Stepper:
     """
-    Thread-safe context manager for adding calculation steps and printing them on exit
+    Thread-safe context manager for collection calculation steps
     """
     _steps: deque
 
@@ -29,7 +29,7 @@ class Stepper:
 
     def __str__(self) -> str:
         """
-        Returns: All added steps concatenated to one string separated by spaces.
+        Returns: Added steps concatenated to one string separated by spaces.
         """
         if self._steps:
             return ' '.join(self._steps)
