@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 """The setup script."""
-
 from setuptools import setup, find_packages
 
 with open('README.rst') as readme_file:
@@ -10,9 +9,9 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['pandas', 'numpy']
+requirements = ['pandas', 'numpy', 'typing_extensions', ]
 
-test_requirements = ['pytest>=3', ]
+test_requirements = ['pytest>=3', 'typing_extensions', ]
 
 setup(
     author="Dominik Thomas",
@@ -23,6 +22,7 @@ setup(
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
     description="Typed python framework for eurocode calculations.",
     install_requires=requirements,

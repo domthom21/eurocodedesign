@@ -13,13 +13,20 @@ TypeError: Addition not allowed for type <class 'eurocodedesign.units.Newton'>
  and <class 'eurocodedesign.units.Meter'>
 >>> N()*m()
 1.0 J
->>> str(100*cm2)
+>>> 100*cm2()
 100.0 cm²
 """
+from __future__ import annotations
 from abc import ABC
 from enum import Enum, unique, auto
 from functools import partial
-from typing import Self, TypeAlias
+import sys
+from typing import TypeAlias
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 @unique
@@ -55,9 +62,6 @@ class Prefix(Enum):
 
 
 class AbstractUnit(ABC):
-    _value: float
-    _prefix: Prefix
-    _unit: Self
     _unit_str: str
     _power = 1
     _physical_type: PhysicalType
@@ -73,14 +77,22 @@ class AbstractUnit(ABC):
                 not self._is_prefix_allowed(prefix)):
             raise ValueError(f'Metric prefix {prefix} not supported'
                              f' for type {type(self)}')
-        self._unit = self.__class__
-        self._prefix = prefix
-        self._value = value * float(prefix.value ** self._power)
+        self._unit: Self = self.__class__
+        self._prefix: Prefix = prefix
+        self._value: float = value * float(prefix.value ** self._power)
 
     def __str__(self) -> str:
         value = self._value / (self._prefix.value ** self._power)
         prefix = self._prefix.name if self._prefix != Prefix.none else ''
         return f"{value} {prefix}{self._unit_str}"
+
+    def __repr__(self) -> str:
+        """Notebook and console-friendly output of the unit value
+
+        Returns: Unit as string
+
+        """
+        return str(self)
 
     def __repr_latex_(self):
         raise NotImplementedError
