@@ -1,11 +1,13 @@
 # Config file for automatic testing at travis-ci.com
 
+dist: jammy
 language: python
 python:
-  - 3.10
+ # - "3.10"
+  - "3.11"
 
-# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox-travis
+before_install: python -m pip install --upgrade pip
+install: pip install -r requirements_dev.txt # tox-travis
 
 # Command to run tests, e.g. python setup.py test
 script: tox
@@ -23,4 +25,4 @@ deploy:
   on:
     tags: true
     repo: domthom21/eurocodedesign
-    python: 3.8
+    python: 3.10

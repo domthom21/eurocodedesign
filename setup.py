@@ -10,14 +10,14 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = [ ]
+requirements = ['pandas', 'numpy']
 
 test_requirements = ['pytest>=3', ]
 
 setup(
     author="Dominik Thomas",
     author_email='dominik.thomas@hsu-hh.de',
-    python_requires='>=3.6',
+    python_requires='>=3.10',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
