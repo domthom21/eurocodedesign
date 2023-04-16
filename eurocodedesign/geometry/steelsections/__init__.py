@@ -114,14 +114,22 @@ class SquareHollowSection(HollowSection):
     weight: float
     perimeter: float
     area: float
-    shear_area: float
-    second_moment_of_area: float
-    radius_of_gyration: float
-    elastic_section_modulus: float
-    plastic_section_modulus: float
+    shear_area_z: float
+    second_moment_of_area_y: float
+    radius_of_gyration_y: float
+    elastic_section_modulus_y: float
+    plastic_section_modulus_y: float
     torsion_constant: float
     torsion_modulus: float
     manufacture_method: str
+    
+    def __post_init__(self):
+        object.__setattr__(self, 'height', self.width)
+        object.__setattr__(self, 'shear_area_y', self.shear_area_z)
+        object.__setattr__(self, 'second_moment_of_area_z', self.second_moment_of_area_y)
+        object.__setattr__(self, 'radius_of_gyration_z', self.radius_of_gyration_y)
+        object.__setattr__(self, 'elastic_section_modulus_z', self.elastic_section_modulus_y)
+        object.__setattr__(self, 'plastic_section_modulus_z', self.plastic_section_modulus_y)
 
 
 """ 
@@ -287,6 +295,6 @@ def get(section_name: str) -> SteelSection:
 
 
 if __name__ == "__main__":
-    a = "IPE240"
+    a = "SHS40x2"
     profile = get(a)
-    print(type(profile.height))
+    print(profile.height)
