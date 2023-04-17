@@ -15,25 +15,32 @@ Examples
     Add step
 """
 from collections import deque
-from typing import Self
+import sys
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class Stepper:
     """
-    Thread-safe context manager for collection calculation steps
+    Thread-safe context manager for collection of calculation steps
     """
-    _steps: deque
 
     def __init__(self) -> None:
-        self._steps = deque()
+        self._steps: deque = deque()
 
     def __str__(self) -> str:
         """
         Returns: Added steps concatenated to one string separated by spaces.
         """
-        if self._steps:
-            return ' '.join(self._steps)
-        return ''
+        return ' '.join(self._steps)
+
+    def get_steps(self) -> deque:
+        """
+        Returns: Current steps as deque
+        """
+        return self._steps
 
     def step(self, description: str) -> None:
         """ Method for adding a calculation step
