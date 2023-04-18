@@ -144,5 +144,6 @@ def get(
 ) -> BasicStructuralSteel:
     if steel_type not in STEEL_TYPES.keys():
         raise ValueError(f"Steel material '{steel_type}' not in library")
-    material: Type[BasicStructuralSteel] = STEEL_TYPES[steel_type]  # type: ignore[type-abstract]
+    material: Type[BasicStructuralSteel] = \
+        STEEL_TYPES[steel_type]  # type: ignore[type-abstract]
     return material(thickness_less_than_equal_40mm)
