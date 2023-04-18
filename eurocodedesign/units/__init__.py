@@ -29,7 +29,6 @@ else:
     from typing_extensions import Self
 
 
-
 @unique
 class PhysicalType(Enum):
     ANGLE = auto()
