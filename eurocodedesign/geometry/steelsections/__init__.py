@@ -2,8 +2,7 @@
 STEEL PROFILE CLASSES
 """
 import os
-from typing import Dict, Type
-from typing_extensions import TypedDict
+from typing import Any
 
 from dataclasses import dataclass
 import pandas as pd
@@ -131,11 +130,6 @@ class SquareHollowSection(HollowSection):
 MODULE LEVEL CONSTANTS
 """
 
-#_SectionDict = TypedDict('_SectionDict',
-#                         {str: TypedDict('params',
-#                                         {"filename": str,
-#                                          "section_class": Type[SteelSection]})})
-
 _SECTION_DATA = {
     "HEA": {"filename": "hea_en10365_2017.csv",
             "section_class": RolledISection},
@@ -247,7 +241,7 @@ def _get_section_type(section_name: str) -> str | None:
     return None
 
 
-def _load_section_props(section_name: str) -> pd.DataFrame:
+def _load_section_props(section_name: str) -> Any:
     """retrieves the section properties for the given section
 
     Args:
@@ -265,18 +259,16 @@ def _load_section_props(section_name: str) -> pd.DataFrame:
     if type(section_name) != str:
         raise ValueError("Provide the section name as a string e.g. 'IPE100'")
     else:
-        if _is_valid_type(section_name):
-            section_type = _get_section_type(section_name)
-            if not section_type:
-                raise ValueError
-            section_db = _import_section_database(section_type)
-            if _is_valid_section(section_name, section_db):
-                return section_db.loc[section_name]
-            else:
-                raise ValueError(f"Invalid section name: '{section_name}'")
-        else:
+        if not _is_valid_type(section_name):
             raise ValueError(f"Invalid section type for section: "
                              f"'{section_name}'")
+        section_type = _get_section_type(section_name)
+        if not section_type:
+            raise ValueError
+        section_db = _import_section_database(section_type)
+        if _is_valid_section(section_name, section_db):
+            return section_db.loc[section_name]
+        raise ValueError(f"Invalid section name: '{section_name}'")
 
 
 def _get_section(section_name: str) -> SteelSection:
@@ -304,4 +296,3 @@ def _get_section(section_name: str) -> SteelSection:
 
 def get(section_name: str) -> SteelSection:
     return _get_section(section_name)
-
