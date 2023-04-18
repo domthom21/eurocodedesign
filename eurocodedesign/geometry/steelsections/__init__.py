@@ -247,7 +247,7 @@ def _get_section_type(section_name: str) -> str | None:
     return None
 
 
-def _load_section_props(section_name: str) -> pd.Series[str]:
+def _load_section_props(section_name: str) -> pd.DataFrame:
     """retrieves the section properties for the given section
 
     Args:
