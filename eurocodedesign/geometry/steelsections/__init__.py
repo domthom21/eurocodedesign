@@ -254,7 +254,7 @@ def _load_section_props(section_name: str) -> Any:
         ValueError: occurs when there is not database for section_type
 
     Returns:
-        pd.Series[str]: containing all the geometric data for the profile
+        pd.Series: containing all the geometric data for the profile
     """
     if type(section_name) != str:
         raise ValueError("Provide the section name as a string e.g. 'IPE100'")
