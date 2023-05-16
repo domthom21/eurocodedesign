@@ -21,7 +21,7 @@ from abc import ABC
 from enum import Enum, unique, auto
 from functools import partial
 import sys
-from typing import TypeAlias
+from typing import TypeAlias, Type, Optional
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -66,7 +66,7 @@ class AbstractUnit(ABC):
     _power = 1
     _physical_type: PhysicalType
 
-    def _is_prefix_allowed(self, type: PhysicalType):
+    def _is_prefix_allowed(self, type: PhysicalType) -> bool:
         return type not in (PhysicalType.TIME,
                             PhysicalType.ANGLE,
                             PhysicalType.MASS,
@@ -74,10 +74,10 @@ class AbstractUnit(ABC):
 
     def __init__(self, value: float = 1.0, prefix: Prefix = Prefix.none):
         if (prefix != Prefix.none and
-                not self._is_prefix_allowed(prefix)):
+                not self._is_prefix_allowed(self._physical_type)):
             raise ValueError(f'Metric prefix {prefix} not supported'
                              f' for type {type(self)}')
-        self._unit: Self = self.__class__
+        self._unit: Type[AbstractUnit] = self.__class__
         self._prefix: Prefix = prefix
         self._value: float = value * float(prefix.value ** self._power)
 
@@ -94,7 +94,7 @@ class AbstractUnit(ABC):
         """
         return str(self)
 
-    def __repr_latex_(self):
+    def __repr_latex_(self) -> None:
         raise NotImplementedError
 
     def __add__(self, other: Self) -> Self:
@@ -111,32 +111,50 @@ class AbstractUnit(ABC):
                             f'type {type(self)} and {type(other)}')
         return type(self)(self._value - other._value)
 
-    def __mul__(self, other: Self | float | int) -> Self:
+    def __mul__(self, other: object) -> AbstractUnit:
+        """
+        Multiplication of a unit type with another unit
+
+        Only valid if multiplication with other unit is supported or
+        other value is of type float or int
+        Args:
+            other:
+
+        Returns:
+
+        """
         if isinstance(other, (int, float)):
             return type(self)(self._value * other /
                               (self._prefix.value
                                ** self._power), self._prefix)
+        if not isinstance(other, AbstractUnit):
+            raise TypeError(f"Multiplication not allowed for"
+                            f" type {type(self)} and {type(other)}.")
         self_type = type(self)
         other_type = type(other)
-        new_type = _allowed_multiplications.get((self_type, other_type), False)
+        new_type: Optional[Type[AbstractUnit]] = \
+            _allowed_multiplications.get((self_type, other_type))
         # check other order because tuple dict keys are ordered
         if not new_type:
             new_type = _allowed_multiplications.get(
-                (other_type, self_type), False)
+                (other_type, self_type))
         if not new_type:
             raise TypeError(f"Multiplication not allowed for"
                             f" type {self_type} and {other_type}.")
         return new_type(self._value * other._value)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: object) -> AbstractUnit:
         return self * other
 
-    def __truediv__(self, other: Self | float | int):
+    def __truediv__(self, other: object) -> AbstractUnit | float:
         if isinstance(other, (int, float)):
             return type(self)(self._value
                               / other
                               / (self._prefix.value
                                  ** self._power), self._prefix)
+        if not isinstance(other, AbstractUnit):
+            raise TypeError('No divisions by another unit allowed'
+                            f' for f{type(self)}')
         self_type = type(self)
         other_type = type(other)
 
@@ -157,37 +175,37 @@ class AbstractUnit(ABC):
         raise TypeError(f'Division of {self_type} by '
                         f'{other_type} not allowed.')
 
-    def __lt__(self, other: Self) -> bool:
+    def __lt__(self, other: object) -> bool:
         if (not isinstance(other, AbstractUnit) or
                 self._physical_type != other._physical_type):
             raise TypeError
         return self._value < other._value
 
-    def __le__(self, other: Self) -> bool:
+    def __le__(self, other: object) -> bool:
         if (not isinstance(other, AbstractUnit) or
                 self._physical_type != other._physical_type):
             raise TypeError
         return self._value <= other._value
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: object) -> bool:
         if (not isinstance(other, AbstractUnit) or
                 self._physical_type != other._physical_type):
             raise TypeError
         return self._value == other._value
 
-    def __ne__(self, other: Self) -> bool:
+    def __ne__(self, other: object) -> bool:
         if (not isinstance(other, AbstractUnit) or
                 self._physical_type != other._physical_type):
             raise TypeError
         return not (self == other)
 
-    def __ge__(self, other: Self) -> bool:
+    def __ge__(self, other: object) -> bool:
         if (not isinstance(other, AbstractUnit) or
                 self._physical_type != other._physical_type):
             raise TypeError
         return self._value >= other._value
 
-    def __gt__(self, other: Self) -> bool:
+    def __gt__(self, other: object) -> bool:
         if (not isinstance(other, AbstractUnit) or
                 self._physical_type != other._physical_type):
             raise TypeError
@@ -202,7 +220,7 @@ class AbstractUnit(ABC):
         Returns: None
 
         """
-        if not self._is_prefix_allowed(prefix):
+        if not self._is_prefix_allowed(self._physical_type):
             raise TypeError(f"Prefix {prefix} not allowed for {type(self)}")
         self._prefix = prefix
         return
@@ -307,21 +325,21 @@ J: TypeAlias = Joule
 
 
 centimeter = partial(Meter, prefix=Prefix.centi)
-cm: TypeAlias = centimeter
+cm = centimeter
 millimeter = partial(Meter, prefix=Prefix.milli)
-mm: TypeAlias = millimeter
+mm = millimeter
 
 square_centimeter = partial(Meter_2, prefix=Prefix.centi)
-cm2: TypeAlias = square_centimeter
+cm2 = square_centimeter
 square_millimeter = partial(Meter_2, prefix=Prefix.milli)
-mm2: TypeAlias = square_millimeter
+mm2 = square_millimeter
 cubic_centimeter = partial(Meter_3, prefix=Prefix.centi)
-cm3: TypeAlias = cubic_centimeter
+cm3 = cubic_centimeter
 
 
 kiloNewton = partial(Newton, prefix=Prefix.kilo)
-kN: TypeAlias = kiloNewton
+kN = kiloNewton
 
 GigaPascal = partial(Pascal, prefix=Prefix.giga)
 MegaPascal = partial(Pascal, prefix=Prefix.mega)
-MPa: TypeAlias = MegaPascal
+MPa = MegaPascal

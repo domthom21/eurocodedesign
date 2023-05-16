@@ -2,17 +2,19 @@
 STEEL PROFILE CLASSES
 """
 import os
-import pandas as pd
+from typing import Any
 
-from pathlib import Path
 from dataclasses import dataclass
+import pandas as pd
+from pathlib import Path
+
 from eurocodedesign.geometry.section import BasicSection
 
 
 @dataclass(frozen=True)
 class SteelSection(BasicSection):
     # add functionality if required later
-    # ??? possible funcitonality could include calculation of axial, shear, and
+    # ??? possible functionality could include calculation of axial, shear, and
     # ??? bending moment strengths -- with a steel material class as input
     pass
 
@@ -128,7 +130,6 @@ class SquareHollowSection(HollowSection):
 MODULE LEVEL CONSTANTS
 """
 
-
 _SECTION_DATA = {
     "HEA": {"filename": "hea_en10365_2017.csv",
             "section_class": RolledISection},
@@ -181,7 +182,7 @@ def _is_valid_type(section_name: str) -> bool:
     for section_type in _SECTION_DATA.keys():
         if section_type in section_name:
             filepath = _get_data_path() \
-                       / _SECTION_DATA[section_type]["filename"]
+                       / str(_SECTION_DATA[section_type]["filename"])
             return os.path.exists(filepath)
     return False
 
@@ -198,7 +199,7 @@ def _import_section_database(section_type: str) -> pd.DataFrame:
         pd.DataFrame: containing all the geometric data for
         the profiles for the provided section_type
     """
-    filepath = _get_data_path() / _SECTION_DATA[section_type]["filename"]
+    filepath = _get_data_path() / str(_SECTION_DATA[section_type]["filename"])
     return pd.read_csv(filepath, index_col=0)
 
 
@@ -240,7 +241,7 @@ def _get_section_type(section_name: str) -> str | None:
     return None
 
 
-def _load_section_props(section_name: str) -> pd.Series:
+def _load_section_props(section_name: str) -> Any:
     """retrieves the section properties for the given section
 
     Args:
@@ -258,16 +259,16 @@ def _load_section_props(section_name: str) -> pd.Series:
     if type(section_name) != str:
         raise ValueError("Provide the section name as a string e.g. 'IPE100'")
     else:
-        if _is_valid_type(section_name):
-            section_type = _get_section_type(section_name)
-            section_db = _import_section_database(section_type)
-            if _is_valid_section(section_name, section_db):
-                return section_db.loc[section_name]
-            else:
-                raise ValueError(f"Invalid section name: '{section_name}'")
-        else:
+        if not _is_valid_type(section_name):
             raise ValueError(f"Invalid section type for section: "
                              f"'{section_name}'")
+        section_type = _get_section_type(section_name)
+        if not section_type:
+            raise ValueError
+        section_db = _import_section_database(section_type)
+        if _is_valid_section(section_name, section_db):
+            return section_db.loc[section_name]
+        raise ValueError(f"Invalid section name: '{section_name}'")
 
 
 def _get_section(section_name: str) -> SteelSection:
@@ -285,15 +286,13 @@ def _get_section(section_name: str) -> SteelSection:
     """
     section_props = _load_section_props(section_name)
     section_type = _get_section_type(section_name)
+    if not section_type:
+        raise ValueError
     section_class = _SECTION_DATA[section_type]["section_class"]
+    if not isinstance(section_class, type(SteelSection)):
+        raise TypeError
     return section_class(section_name, *section_props.tolist())
 
 
 def get(section_name: str) -> SteelSection:
     return _get_section(section_name)
-
-
-if __name__ == "__main__":
-    a = "IPE240"
-    prof = get(a)
-    print(prof)

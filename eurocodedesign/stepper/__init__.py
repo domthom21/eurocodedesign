@@ -15,6 +15,7 @@ Examples
     Add step
 """
 from collections import deque
+from types import TracebackType
 import sys
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -28,7 +29,7 @@ class Stepper:
     """
 
     def __init__(self) -> None:
-        self._steps: deque = deque()
+        self._steps: deque[str] = deque()
 
     def __str__(self) -> str:
         """
@@ -36,7 +37,7 @@ class Stepper:
         """
         return ' '.join(self._steps)
 
-    def get_steps(self) -> deque:
+    def get_steps(self) -> deque[str]:
         """
         Returns: Current steps as deque
         """
@@ -61,7 +62,10 @@ class Stepper:
             print(self)
         self._steps.clear()
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(self,
+                 exc_type: type[BaseException] | None,
+                 exc_val: BaseException | None,
+                 exc_tb: TracebackType | None) -> None:
         self._flush()
 
     def __del__(self) -> None:
