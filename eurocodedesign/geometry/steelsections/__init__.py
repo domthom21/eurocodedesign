@@ -133,6 +133,14 @@ class SquareHollowSection(HollowSection):
         object.__setattr__(self, 'elastic_section_modulus_z', self.elastic_section_modulus_y)
         object.__setattr__(self, 'plastic_section_modulus_z', self.plastic_section_modulus_y)
 
+    def __post_init__(self):
+        object.__setattr__(self, 'height', self.width)
+        object.__setattr__(self, 'shear_area_y', self.shear_area_z)
+        object.__setattr__(self, 'second_moment_of_area_z', self.second_moment_of_area_y)
+        object.__setattr__(self, 'radius_of_gyration_z', self.radius_of_gyration_y)
+        object.__setattr__(self, 'elastic_section_modulus_z', self.elastic_section_modulus_y)
+        object.__setattr__(self, 'plastic_section_modulus_z', self.plastic_section_modulus_y)
+
 
 """
 MODULE LEVEL CONSTANTS
@@ -309,4 +317,4 @@ def _get_section(section_name: str) -> SteelSection:
 
 def get(section_name: str) -> SteelSection:
     return _get_section(section_name)
-gi
+
