@@ -125,15 +125,7 @@ class SquareHollowSection(HollowSection):
     torsion_modulus: float
     manufacture_method: str
 
-    def __post_init__(self):
-        object.__setattr__(self, 'height', self.width)
-        object.__setattr__(self, 'shear_area_y', self.shear_area_z)
-        object.__setattr__(self, 'second_moment_of_area_z', self.second_moment_of_area_y)
-        object.__setattr__(self, 'radius_of_gyration_z', self.radius_of_gyration_y)
-        object.__setattr__(self, 'elastic_section_modulus_z', self.elastic_section_modulus_y)
-        object.__setattr__(self, 'plastic_section_modulus_z', self.plastic_section_modulus_y)
-
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, 'height', self.width)
         object.__setattr__(self, 'shear_area_y', self.shear_area_z)
         object.__setattr__(self, 'second_moment_of_area_z', self.second_moment_of_area_y)
@@ -216,7 +208,7 @@ def _import_section_database(section_type: str) -> pd.DataFrame:
         the profiles for the provided section_type
     """
 
-    filepath = _get_data_path() / _SECTION_DATA[section_type]["filename"]
+    filepath = _get_data_path() / str(_SECTION_DATA[section_type]["filename"])
     df = pd.read_csv(filepath, index_col=0)
     df = df.iloc[1:]
     cols = df.columns.difference(['manufacture'])
