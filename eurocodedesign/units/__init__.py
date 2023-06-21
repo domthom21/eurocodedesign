@@ -21,7 +21,7 @@ from abc import ABC
 from enum import Enum, unique, auto
 from functools import partial
 import sys
-from typing import TypeAlias, Type, Optional
+from typing import TypeAlias, Type, Optional, overload
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -145,6 +145,18 @@ class AbstractUnit(ABC):
 
     def __rmul__(self, other: object) -> AbstractUnit:
         return self * other
+
+    # todo extend overloads
+    @overload
+    def __truediv__(self, other: Meter) -> float: ...
+    @overload
+    def __truediv__(self, other: Meter_2) -> Pascal: ...
+    @overload
+    def __truediv__(self, other: Pascal) -> float: ...
+    @overload
+    def __truediv__(self, other: Meter_3) -> Pascal: ...
+    @overload
+    def __truediv__(self, other: object) -> AbstractUnit | float: ...
 
     def __truediv__(self, other: object) -> AbstractUnit | float:
         if isinstance(other, (int, float)):
@@ -343,3 +355,8 @@ kN = kiloNewton
 GigaPascal = partial(Pascal, prefix=Prefix.giga)
 MegaPascal = partial(Pascal, prefix=Prefix.mega)
 MPa = MegaPascal
+N_per_mm2 = MegaPascal
+GPa = GigaPascal
+
+
+
