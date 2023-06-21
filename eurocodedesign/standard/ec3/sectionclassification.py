@@ -64,7 +64,7 @@ def _rhs_shs_i_section_classification(
         limit_function,
     ) = _section_specific_classification_parameters(section)
     # flange_slenderness = _flange_slenderness(section)
-    eps = get_epsilon(material)
+    epsilon = calc_epsilon(material.f_yk)
 
     # try from least strict to most strict class until criteria not satisfied
     for section_class in [3, 2, 1]:
@@ -81,7 +81,7 @@ def _rhs_shs_i_section_classification(
             web_slenderness,
             flange_slenderness,
             distribution_parameter,
-            eps,
+            epsilon,
             section_class,
         ):
             return section_class + 1
@@ -157,9 +157,9 @@ def _chs_section_classification(
     section: CircularHollowSection, material: BasicStructuralSteel
 ) -> int:
     slenderness = _slenderness_for_chs_elements(section)
-    eps = get_epsilon(material)
+    epsilon = calc_epsilon(material.f_yk)
     for section_class in [3, 2, 1]:
-        if not slenderness <= _boundary_ct_for_chs_elements(eps, section_class):
+        if not slenderness <= _boundary_ct_for_chs_elements(epsilon, section_class):
             return section_class + 1
     return 1
 
@@ -231,8 +231,17 @@ def bending_stress(bending_moment: Newtonmeter, section_modulus: Meter_3) -> Pas
     return bending_moment / section_modulus
 
 
-def get_epsilon(material: BasicStructuralSteel) -> float:
-    return sqrt( 235*N_per_mm2() / material.f_yk)
+def calc_epsilon(f_yk: Pascal) -> float:
+    """Calculates the material specific epsilon factor
+
+    Typical values:
+
+    Args:
+        f_yk (Pascal): The f_y value (yield stress) of the material
+    Returns:
+        float: the epsilon value according to EN 1993-1-1:2012-12 Tab.5.2
+    """
+    return sqrt(235*N_per_mm2() / f_yk)
 
 
 def _e_from_normal_force(
@@ -285,7 +294,7 @@ def _alpha_for_major_axis_symmetric_sections(
     section: ISection | RectangularHollowSection | SquareHollowSection,
     material: BasicStructuralSteel,
     axial_force: Newton,
-    weld_or_radius: Meter,
+    weld_or_radius: Meter, # TODO rename to weld_thickness?
 ) -> float:
     """calculates the alpha value for sections symmetric about their major axis
 
@@ -297,8 +306,8 @@ def _alpha_for_major_axis_symmetric_sections(
         section (ISection | RectangularHollowSection | SquareHollowSection):
             section to analyse
         material (BasicStructuralSteel): steel material of the cross-section
-        axial_force (float): axial force acting on cross-section
-        weld_or_radius (float): weld thickness or radius between flange and web
+        axial_force (Newton): axial force acting on cross-section
+        weld_or_radius (Meter): weld thickness or radius between flange and web
 
     Returns:
         float: the value of alpha
@@ -306,9 +315,8 @@ def _alpha_for_major_axis_symmetric_sections(
     c: Meter
     if isinstance(section, ISection):
         c = _c_web_for_symmetric_I_section(section, weld_or_radius)
-    elif isinstance(section, RectangularHollowSection) or isinstance(
-        section, SquareHollowSection
-    ):
+    elif (isinstance(section, RectangularHollowSection) or
+          isinstance(section, SquareHollowSection)):
         c = _c_web_for_rhs_shs_sections(section)
     e: Pascal = _e_from_normal_force(section, material, axial_force, gamma_M0=1)
     alpha = min(1.0, ( (c / 2.0) + (e / 2.0)) / c)  # required when N gt capacitiy of web # TODO fix types
