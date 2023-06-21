@@ -10,6 +10,7 @@
 # !!! only implemented for rolled doubly symmetric I-Sections, CHS, RHS, SHS
 
 """
+from math import sqrt
 from typing import Tuple, Callable
 import numpy as np
 from eurocodedesign.geometry.steelsections import (
@@ -21,6 +22,7 @@ from eurocodedesign.geometry.steelsections import (
     RectangularHollowSection,
 )
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
+from eurocodedesign.units import Newton, Meter_2, Pascal
 
 
 def _section_classification(
@@ -33,7 +35,7 @@ def _section_classification(
     # todo
     if isinstance(section, CircularHollowSection):
         section_class = _chs_section_classification(section, material)
-    
+
     elif (
         isinstance(section, RectangularHollowSection)
         or isinstance(section, SquareHollowSection)
@@ -88,7 +90,7 @@ def _rhs_shs_i_section_classification(
 
 def _section_specific_classification_parameters(
     section: SteelSection,
-) -> Tuple[float, float, float, Callable]:
+) -> Tuple[float, float, float, Callable[..., bool]]:
     # returns the correct web slenderness depending on the section type
     # todo
     if isinstance(section, RolledISection):
@@ -142,7 +144,7 @@ def i_section_web_and_flange_slenderness_lt_limit(
     web_limit = _boundary_ct_for_double_supported_elements(
         distribution_parameter, epsilon, section_class
     )
-    flange_limit = _boundary_ct_for_single_supported_elements(1, epsilon, section_class)
+    flange_limit = _boundary_ct_for_single_supported_elements(epsilon, section_class)
     if web_slenderness <= web_limit and flange_slenderness <= flange_limit:
         return True
     else:
@@ -178,6 +180,7 @@ def _boundary_ct_for_double_supported_elements(
     Returns:
         float: the boundary value for c/t
     """
+    alpha: float
     if section_class == 1:
         alpha = distribution_parameter
         if distribution_parameter > 0.5:
@@ -193,11 +196,11 @@ def _boundary_ct_for_double_supported_elements(
             return 41.5 * epsilon / alpha
 
     elif section_class == 3:
-        psi = distribution_parameter
+        psi: float = distribution_parameter
         if psi > -1:
             return 42 * epsilon / (0.67 + 0.33 * psi)
         else:
-            return 62 * epsilon * (1 - psi) * np.sqrt(-psi)
+            return 62 * epsilon * (1 - psi) * sqrt(-psi)
 
     else:
         raise ValueError(f"Invalid section class: '{section_class}'")
@@ -214,26 +217,28 @@ def _boundary_ct_for_single_supported_elements(
         return 10 * epsilon
     elif section_class == 3:
         return 14 * epsilon
+    else:
+        raise ValueError('Invalid cross-section class ', section_class)
 
 
-def normal_stress(normal_force, area):
-    return normal_force / area
+def normal_stress(normal_force: Newton, area: Meter_2) -> Pascal:
+    return Pascal(normal_force / area)
 
 
-def bending_stress(bending_moment, section_modulus):
-    return bending_moment / section_modulus
+def bending_stress(bending_moment: float, section_modulus: float) -> Pascal: # todo fix float types
+    return Pascal(bending_moment / section_modulus)
 
 
-def get_epsilon(material: BasicStructuralSteel):
-    return np.sqrt(235 / material.f_yk)
+def get_epsilon(material: BasicStructuralSteel) -> float:
+    return sqrt(235 / material.f_yk) # todo fix types
 
 
 def _e_from_normal_force(
     section: ISection | SquareHollowSection | RectangularHollowSection,
     material: BasicStructuralSteel,
-    axial_force: float,
+    axial_force: Newton,
     gamma_M0: float = 1.0,
-) -> float:
+) -> Pascal:
     """Calculates the length of the web required to carry the axial force
 
     The web is assumed to be completely plastified. The axial load is assumed
@@ -251,10 +256,9 @@ def _e_from_normal_force(
         float: length of web required to carry the axial force
     """
     if isinstance(section, ISection):
-        return axial_force * gamma_M0 / (material.f_yk * section.web_thickness)
-    elif isinstance(section, SquareHollowSection) or isinstance(
-        section, RectangularHollowSection
-    ):
+        return axial_force * gamma_M0 / (material.f_yk * section.web_thickness) # todo fix f_yk type
+    elif (isinstance(section, SquareHollowSection) or
+          isinstance(section, RectangularHollowSection)):
         return axial_force * gamma_M0 / (material.f_yk * 2 * section.wall_thickness)
     else:
         raise NotImplementedError(
