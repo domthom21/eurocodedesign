@@ -37,45 +37,30 @@ from eurocodedesign.units import Pascal, mm2, N
 
 @dataclass(frozen=True)
 class BasicStructuralSteel(ABC):
-    _thickness_le_40mm: bool = True
-    _elastic_modulus: Pascal = field(default=210_000*N()/mm2(), kw_only=True)
-    _shear_modulus: Pascal = field(default=81_000*N()/mm2(), kw_only=True)
+    thickness_le_40mm: bool = field(default=True)
+    _elastic_modulus: Pascal = field(default_factory=lambda: 210_000*N()/mm2(), kw_only=True)
+    _shear_modulus: Pascal = field(default_factory=lambda: 81_000*N()/mm2(), kw_only=True)
     _thermal_coefficient: float = field(default=1.2e-7, kw_only=True)  # 1/K
     poissons_ratio: float = field(default=0.3, kw_only=True)
 
-    @property
-    @abstractmethod
-    def _fy_thin(self) -> Pascal:
-        pass
-
-    @property
-    @abstractmethod
-    def _fy_thick(self) -> Pascal:
-        pass
-
-    @property
-    @abstractmethod
-    def _fu_thin(self) -> Pascal:
-        pass
-
-    @property
-    @abstractmethod
-    def _fu_thick(self) -> Pascal:
-        pass
+    _f_y_thin: Pascal = None
+    _f_y_thick: Pascal = None
+    _f_u_thin: Pascal = None
+    _f_u_thick: Pascal = None
 
     @property
     def f_yk(self) -> Pascal:
-        if self._thickness_le_40mm:
-            return self._fy_thin
+        if self.thickness_le_40mm:
+            return self._f_y_thin
         else:
-            return self._fy_thick
+            return self._f_y_thick
 
     @property
     def f_uk(self) -> Pascal:
-        if not self._thickness_le_40mm:
-            return self._fu_thin
+        if not self.thickness_le_40mm:
+            return self._f_u_thin
         else:
-            return self._fu_thick
+            return self._f_u_thick
 
     @property
     def E(self) -> Pascal:
@@ -90,44 +75,44 @@ class BasicStructuralSteel(ABC):
         return self._thermal_coefficient
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class S235(BasicStructuralSteel):
-    name: str = field(default="S235", kw_only=True)
-    _fy_thin: Pascal = field(default=235*N()/mm2(), kw_only=True)
-    _fu_thin: Pascal = field(default=360*N()/mm2(), kw_only=True)
-    _fy_thick: Pascal = field(default=215*N()/mm2(), kw_only=True)
-    _fu_thick: Pascal = field(default=360*N()/mm2(), kw_only=True)
-    norm: str = field(default="EN 10025-2", kw_only=True)
+    name: str = "S235"
+    _f_y_thin: Pascal = field(default_factory=lambda: 235*N()/mm2())
+    _f_u_thin: Pascal = field(default_factory=lambda: 360*N()/mm2())
+    _f_y_thick: Pascal = field(default_factory=lambda: 215*N()/mm2())
+    _f_u_thick: Pascal = field(default_factory=lambda: 360*N()/mm2())
+    norm: str = "EN 10025-2"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class S275(BasicStructuralSteel):
-    name: str = field(default="S275", kw_only=True)
-    _fy_thin: Pascal = field(default=275*N()/mm2(), kw_only=True)
-    _fu_thin: Pascal = field(default=430*N()/mm2(), kw_only=True)
-    _fy_thick: Pascal = field(default=255*N()/mm2(), kw_only=True)
-    _fu_thick: Pascal = field(default=410*N()/mm2(), kw_only=True)
-    norm: str = field(default="EN 10025-2", kw_only=True)
+    name: str = "S275"
+    _f_y_thin: Pascal = field(default_factory=lambda: 275*N()/mm2())
+    _f_u_thin: Pascal = field(default_factory=lambda: 430*N()/mm2())
+    _f_y_thick: Pascal = field(default_factory=lambda: 255*N()/mm2())
+    _f_u_thick: Pascal = field(default_factory=lambda: 410*N()/mm2())
+    norm: str = "EN 10025-2"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class S355(BasicStructuralSteel):
-    name: str = field(default="S355", kw_only=True)
-    _fy_thin: Pascal = field(default=355*N()/mm2(), kw_only=True)
-    _fu_thin: Pascal = field(default=490*N()/mm2(), kw_only=True)
-    _fy_thick: Pascal = field(default=335*N()/mm2(), kw_only=True)
-    _fu_thick: Pascal = field(default=470*N()/mm2(), kw_only=True)
-    norm: str = field(default="EN 10025-2", kw_only=True)
+    name: str = "S355"
+    _f_y_thin: Pascal = field(default_factory=lambda: 355*N()/mm2())
+    _f_u_thin: Pascal = field(default_factory=lambda: 490*N()/mm2())
+    _f_y_thick: Pascal = field(default_factory=lambda: 335*N()/mm2())
+    _f_u_thick: Pascal = field(default_factory=lambda: 470*N()/mm2())
+    norm: str = "EN 10025-2"
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class S450(BasicStructuralSteel):
-    name: str = field(default="S450", kw_only=True)
-    _fy_thin: Pascal = field(default=440*N()/mm2(), kw_only=True)
-    _fu_thin: Pascal = field(default=550*N()/mm2(), kw_only=True)
-    _fy_thick: Pascal = field(default=410*N()/mm2(), kw_only=True)
-    _fu_thick: Pascal = field(default=550*N()/mm2(), kw_only=True)
-    norm: str = field(default="EN 10025-2", kw_only=True)
+    name: str = "S450"
+    _f_y_thin: Pascal = field(default_factory=lambda: 440*N()/mm2())
+    _f_u_thin: Pascal = field(default_factory=lambda: 550*N()/mm2())
+    _f_y_thick: Pascal = field(default_factory=lambda: 410*N()/mm2())
+    _f_u_thick: Pascal = field(default_factory=lambda: 550*N()/mm2())
+    norm: str = "EN 10025-2"
 
 
 """
