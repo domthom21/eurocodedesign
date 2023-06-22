@@ -402,13 +402,3 @@ def _flange_slenderness_for_rhs_shs_sections(
 ) -> float:
     """returns the the slenderness (c/t) value of flange the SHS/RHS section"""
     return _c_flange_for_rhs_shs_sections(section) / section.wall_thickness
-
-
-if __name__ == "__main__":
-    import eurocodedesign.geometry.steelsections as sec
-    import eurocodedesign.materials.structuralsteel as stl
-
-    # section_class = _rhs_shs_section_classification(
-    #     sec.get("SHS140x4"), stl.S355(), 500_000, 0.0
-    # )
-    # print(section_class)
