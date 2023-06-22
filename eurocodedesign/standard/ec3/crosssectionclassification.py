@@ -1,4 +1,4 @@
-""" Module for classifying steel cross-sections following Eurocode 3 §5.5
+""" Module for classifying steel cross-sections following EN 1993-1-1:2005 §5.5
 
 
 # todo - check out exceptions in §6.2.1(10) and §6.2.2.4(1)
