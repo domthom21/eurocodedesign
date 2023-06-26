@@ -43,10 +43,10 @@ class BasicStructuralSteel(ABC):
     _thermal_coefficient: float = field(default=1.2e-7, kw_only=True)  # 1/K
     poissons_ratio: float = field(default=0.3, kw_only=True)
 
-    f_y_thin: Pascal = None
-    f_y_thick: Pascal = None
-    f_u_thin: Pascal = None
-    f_u_thick: Pascal = None
+    f_y_thin: Pascal = Pascal(0)
+    f_y_thick: Pascal = Pascal(0)
+    f_u_thin: Pascal = Pascal(0)
+    f_u_thick: Pascal = Pascal(0)
 
     @property
     def f_yk(self) -> Pascal:
@@ -54,6 +54,7 @@ class BasicStructuralSteel(ABC):
             return self.f_y_thin
         else:
             return self.f_y_thick
+        
 
     @property
     def f_uk(self) -> Pascal:
