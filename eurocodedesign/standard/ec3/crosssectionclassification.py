@@ -12,7 +12,6 @@
 """
 from math import sqrt
 from typing import Tuple, Callable, cast
-import numpy as np
 from eurocodedesign.geometry.steelsections import (
     SteelSection,
     ISection,
