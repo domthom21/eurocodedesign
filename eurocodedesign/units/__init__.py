@@ -347,6 +347,12 @@ square_millimeter = partial(Meter_2, prefix=Prefix.milli)
 mm2 = square_millimeter
 cubic_centimeter = partial(Meter_3, prefix=Prefix.centi)
 cm3 = cubic_centimeter
+cubic_millimeter = partial(Meter_3, prefix=Prefix.milli)
+mm3 = cubic_millimeter
+quartic_centimeter = partial(Meter_4, prefix=Prefix.centi)
+cm4 = quartic_centimeter
+quartic_millimeter = partial(Meter_4, prefix=Prefix.milli)
+mm4 = quartic_millimeter
 
 
 kiloNewton = partial(Newton, prefix=Prefix.kilo)
