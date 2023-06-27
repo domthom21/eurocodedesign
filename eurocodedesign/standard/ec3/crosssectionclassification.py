@@ -248,7 +248,7 @@ def _e_from_normal_force(
     material: BasicStructuralSteel,
     axial_force: Newton,
     gamma_M0: float = 1.0, # todo load gamma values from somewhere else
-) -> Pascal:
+) -> Meter:
     """Calculates the length of the web required to carry the axial force
 
     The web is assumed to be completely plastified. The axial load is assumed
@@ -263,13 +263,13 @@ def _e_from_normal_force(
             Default: 1.0
 
     Returns:
-        float: length of web required to carry the axial force
+        Meter: length of web required to carry the axial force
     """
     if isinstance(section, ISection):
-        return cast(Pascal, axial_force * gamma_M0 / (material.f_yk * section.web_thickness)) # todo fix f_yk type # todo fix ISecion.web_thickness type
+        return cast(Meter, axial_force * gamma_M0 / (material.f_yk * section.web_thickness))  # todo fix ISecion.web_thickness type
     elif (isinstance(section, SquareHollowSection) or
           isinstance(section, RectangularHollowSection)):
-        return cast(Pascal, axial_force * gamma_M0 / (material.f_yk * 2 * Meter(section.wall_thickness)))
+        return cast(Meter, axial_force * gamma_M0 / (material.f_yk * 2 * Meter(section.wall_thickness)))
     else:
         raise NotImplementedError(
             f"Section Classification for {section.name} is not yet implemented"
@@ -317,7 +317,7 @@ def _alpha_for_major_axis_symmetric_sections(
     elif (isinstance(section, RectangularHollowSection) or
           isinstance(section, SquareHollowSection)):
         c = _c_web_for_rhs_shs_sections(section)
-    e: Pascal = _e_from_normal_force(section, material, axial_force, gamma_M0=1)
+    e: Meter = _e_from_normal_force(section, material, axial_force, gamma_M0=1)
     alpha = min(1.0, ( (c / 2.0) + (e / 2.0)) / c)  # required when N gt capacitiy of web # TODO fix types
 
     return cast(float, alpha)
@@ -348,14 +348,14 @@ def _flange_slenderness_for_symmetric_I_section(section: ISection) -> float:
 
 def _c_web_for_symmetric_I_section(section: ISection, weld_or_radius: Meter) -> Meter:
     """calculates the clear length of web between welds or radii, c_web"""
-    return (Meter(section.height) -  2.0 * (Meter(section.flange_thickness) + weld_or_radius)) #todo fiy type flange thickness, section_height
+    return (Meter(section.height) -  cast(Meter, 2.0 * (Meter(section.flange_thickness) + weld_or_radius))) #todo fiy type flange thickness, section_height
 
 
 def _c_flange_for_symmetric_I_section(
     section: ISection, weld_or_radius: Meter
 ) -> Meter:
     """calculates the clear length of flange from the edge of the radius or weld"""
-    return cast(Meter, ((Meter(section.flange_width) - 2 * weld_or_radius - Meter(section.web_thickness)) / 2.0)) #TODO fix type web_whickness, flange_width
+    return cast(Meter, ((Meter(section.flange_width) - cast(Meter, 2.0 * weld_or_radius - Meter(section.web_thickness))) / 2.0)) #TODO fix type web_whickness, flange_width
 
 
 ### CHS Specific Stuff

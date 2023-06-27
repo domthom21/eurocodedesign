@@ -12,6 +12,7 @@ from eurocodedesign.geometry.section import BasicSection
 
 @dataclass(frozen=True)
 class SteelSection(BasicSection):
+    # properties common among all steel sections (incl. major axis bending)
     weight: float = field(kw_only=True)
     perimeter: float = field(kw_only=True)
     area: float = field(kw_only=True)
@@ -42,6 +43,7 @@ class ISection(SteelSection):
     flange_width: float = field(kw_only=True)
     web_thickness: float = field(kw_only=True)
     flange_thickness: float = field(kw_only=True)
+    shear_area_y: float = field(kw_only=True)
     second_moment_of_area_z: float = field(kw_only=True)
     radius_of_gyration_z: float = field(kw_only=True)
     elastic_section_modulus_z: float = field(kw_only=True)
@@ -125,7 +127,7 @@ _SECTION_DATA = {
 }
 
 # used to link the variable names in the csv data to variable names in code
-_PROPERTY_NAME_MAP = {
+_PROPERTY_NAME_MAP: Dict[str, Dict[str, str | float]] = { # TODO change any to abstractunit
     "h": {"variable_name" : "height",
           "type": float},
     "b": {"variable_name" : "flange_width",
@@ -334,7 +336,7 @@ def _get_section(section_name: str) -> SteelSection:
 
 
 def _map_property_names(section_props: Any) -> Dict[str, Any]:
-    return {_PROPERTY_NAME_MAP[k]["variable_name"]: v for k, v in section_props.items()}
+    return {_PROPERTY_NAME_MAP[k]["variable_name"]: _PROPERTY_NAME_MAP[k]["type"](v) for k, v in section_props.items()}
 
 
 def get(section_name: str) -> SteelSection:
