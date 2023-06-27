@@ -379,8 +379,3 @@ def _map_property_names(section_props: Any) -> Dict[str, Any]:
 def get(section_name: str) -> SteelSection:
     return _get_section(section_name)
 
-if __name__ == "__main__":
-    section_props = _load_section_props("IPE200")
-    prop_dict = _map_property_names(section_props)
-    sec = get("IPE200")
-    pass
