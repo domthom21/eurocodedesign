@@ -28,32 +28,32 @@ def profile_series():
 
 @pytest.fixture
 def dummy_IPE270():
-    geometric_properties = [
-        "IPE270",
-        270,
-        135,
-        6.6,
-        10.2,
-        15,
-        36.1,
-        1.041,
-        4595,
-        2214,
-        2754,
-        57900000,
-        112.3,
-        428900,
-        484000,
-        4199000,
-        30.2,
-        62200,
-        96950,
-        157100,
-        23800,
-        69469000000,
-        7974000,
-    ]
-    return ss.RolledISection(*geometric_properties)
+    geometric_properties = {
+        "name": "IPE270",
+        "height": 270,
+        "flange_width": 135,
+        "web_thickness": 6.6,
+        "flange_thickness": 10.2,
+        "root_radius": 15,
+        "weight": 36.1,
+        "perimeter": 1.041,
+        "area": 4595,
+        "shear_area_z": 2214,
+        "shear_area_y": 2754,
+        "second_moment_of_area_y": 57900000,
+        "radius_of_gyration_y": 112.3,
+        "elastic_section_modulus_y": 428900,
+        "plastic_section_modulus_y": 484000,
+        "second_moment_of_area_z": 4199000,
+        "radius_of_gyration_z": 30.2,
+        "elastic_section_modulus_z": 62200,
+        "plastic_section_modulus_z": 96950,
+        "torsion_constant": 157100,
+        "torsion_modulus": 23800,
+        "warping_constant": 69469000000,
+        "warping_modulus": 7974000,
+    }
+    return ss.RolledISection(**geometric_properties)
 
 
 @pytest.fixture
