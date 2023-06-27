@@ -15,6 +15,11 @@ class SteelSection(BasicSection):
     weight: float = field(kw_only=True)
     perimeter: float = field(kw_only=True)
     area: float = field(kw_only=True)
+    shear_area_z: float = field(kw_only=True)
+    second_moment_of_area_y: float = field(kw_only=True)
+    radius_of_gyration_y: float = field(kw_only=True)
+    elastic_section_modulus_y: float = field(kw_only=True)
+    plastic_section_modulus_y: float = field(kw_only=True)
     # add functionality if required later
     # ??? possible functionality could include calculation of axial, shear, and
     # ??? bending moment strengths -- with a steel material class as input
@@ -37,12 +42,6 @@ class ISection(SteelSection):
     flange_width: float = field(kw_only=True)
     web_thickness: float = field(kw_only=True)
     flange_thickness: float = field(kw_only=True)
-    shear_area_z: float = field(kw_only=True)
-    shear_area_y: float = field(kw_only=True)
-    second_moment_of_area_y: float = field(kw_only=True)
-    radius_of_gyration_y: float = field(kw_only=True)
-    elastic_section_modulus_y: float = field(kw_only=True)
-    plastic_section_modulus_y: float = field(kw_only=True)
     second_moment_of_area_z: float = field(kw_only=True)
     radius_of_gyration_z: float = field(kw_only=True)
     elastic_section_modulus_z: float = field(kw_only=True)
@@ -65,71 +64,33 @@ class RolledISection(RolledSection, ISection):
 
 @dataclass(frozen=True)
 class CircularHollowSection(HollowSection):
-    diameter: float
-    wall_thickness: float
-    weight: float
-    perimeter: float
-    area: float
-    shear_area: float
-    second_moment_of_area: float
-    radius_of_gyration: float
-    elastic_section_modulus: float
-    plastic_section_modulus: float
-    torsion_constant: float
-    torsion_modulus: float
-    manufacture_method: str
+    diameter: float = field(kw_only=True)
+    wall_thickness: float = field(kw_only=True)
+    torsion_constant: float = field(kw_only=True)
+    torsion_modulus: float = field(kw_only=True)
+    manufacture_method: str = field(kw_only=True)
 
 
 @dataclass(frozen=True)
 class RectangularHollowSection(HollowSection):
-    height: float
-    width: float
-    wall_thickness: float
-    outer_corner_radius: float
-    inner_corner_radius: float
-    weight: float
-    perimeter: float
-    area: float
-    shear_area_z: float
-    shear_area_y: float
-    second_moment_of_area_y: float
-    radius_of_gyration_y: float
-    elastic_section_modulus_y: float
-    plastic_section_modulus_y: float
-    second_moment_of_area_z: float
-    radius_of_gyration_z: float
-    elastic_section_modulus_z: float
-    plastic_section_modulus_z: float
-    torsion_constant: float
-    torsion_modulus: float
-    manufacture_method: str
+    height: float = field(kw_only=True)
+    width: float = field(kw_only=True)
+    wall_thickness: float = field(kw_only=True)
+    outer_corner_radius: float = field(kw_only=True)
+    inner_corner_radius: float = field(kw_only=True)
+    shear_area_y: float = field(kw_only=True)
+    second_moment_of_area_z: float = field(kw_only=True)
+    radius_of_gyration_z: float = field(kw_only=True)
+    elastic_section_modulus_z: float = field(kw_only=True)
+    plastic_section_modulus_z: float = field(kw_only=True)
+    torsion_constant: float = field(kw_only=True)
+    torsion_modulus: float = field(kw_only=True)
+    manufacture_method: str = field(kw_only=True)
 
 
 @dataclass(frozen=True)
-class SquareHollowSection(HollowSection):
-    # ??? could simplify the SquareHollowSection to be a child of 
-    # ??? RectangularHollowSection as all the properties are the same
-    height: float
-    width: float
-    wall_thickness: float
-    outer_corner_radius: float
-    inner_corner_radius: float
-    weight: float
-    perimeter: float
-    area: float
-    shear_area_z: float
-    shear_area_y: float
-    second_moment_of_area_y: float
-    radius_of_gyration_y: float
-    elastic_section_modulus_y: float
-    plastic_section_modulus_y: float
-    second_moment_of_area_z: float
-    radius_of_gyration_z: float
-    elastic_section_modulus_z: float
-    plastic_section_modulus_z: float
-    torsion_constant: float
-    torsion_modulus: float
-    manufacture_method: str
+class SquareHollowSection(RectangularHollowSection):
+    pass
 
 
 """
