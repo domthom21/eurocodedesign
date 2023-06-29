@@ -348,3 +348,15 @@ class TestClassifyChsCrossSection():
         actual = csc.classify_chs_cross_section(mm(650), mm(10), MPa(355))
         expected = 4
         assert actual == expected
+        
+        
+class TestClassifyAngleCrossSection():
+    def test_235MPa_class_three(self):
+        actual = csc.classify_angle_cross_section(mm(130), mm(50), mm(10), MPa(235))
+        expected = 3
+        assert actual == expected
+        
+    def test_335MPa_class_four(self):
+        actual = csc.classify_angle_cross_section(mm(130), mm(50), mm(10), MPa(355))
+        expected = 4
+        assert actual == expected

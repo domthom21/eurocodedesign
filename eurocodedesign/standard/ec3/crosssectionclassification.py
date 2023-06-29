@@ -196,9 +196,18 @@ def ct_limit_ssup_element_class_3_tension_free_edge(f_yk: Pascal, psi: float) ->
     return 21 * calc_epsilon(f_yk) * sqrt(calc_k_sigma(psi, comp_free_edge=False))
 
 
-def classify_angle_cross_section():
-    # todo
-    pass
+def classify_angle_cross_section(h: Meter, b: Meter, t: Meter, f_yk: Pascal) -> int:
+    slenderness = h / t
+    slenderess_2 = (b + h) / (2 * t)
+    eps = calc_epsilon(f_yk)
+    
+    limit_one = 15 * eps
+    limit_two = 11.5 * eps
+    
+    if slenderness <= limit_one and slenderess_2 <= limit_two:
+        return 3
+        
+    return 4
 
 
 def classify_chs_cross_section(d: Meter, t: Meter, f_yk: Pascal) -> int:
