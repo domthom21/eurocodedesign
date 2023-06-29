@@ -326,3 +326,25 @@ class TestTensionFreeEdgeClassification:
         actual = csc.ct_limit_ssup_element_class_3_tension_free_edge(MPa(235), -1.0)
         expected = 102.4490117
         assert actual == approx(expected)
+
+
+class TestClassifyChsCrossSection():
+    def test_235MPa_class_one(self):
+        actual = csc.classify_chs_cross_section(mm(450), mm(10), MPa(235))
+        expected = 1
+        assert actual == expected
+        
+    def test_355MPa_class_two(self):
+        actual = csc.classify_chs_cross_section(mm(400), mm(10), MPa(355))
+        expected = 2
+        assert actual == expected
+        
+    def test_355MPa_class_three(self):
+        actual = csc.classify_chs_cross_section(mm(550), mm(10), MPa(355))
+        expected = 3
+        assert actual == expected
+        
+    def test_355MPa_class_four(self):
+        actual = csc.classify_chs_cross_section(mm(650), mm(10), MPa(355))
+        expected = 4
+        assert actual == expected

@@ -196,18 +196,27 @@ def ct_limit_ssup_element_class_3_tension_free_edge(f_yk: Pascal, psi: float) ->
     return 21 * calc_epsilon(f_yk) * sqrt(calc_k_sigma(psi, comp_free_edge=False))
 
 
-def classify_angle_profile():
+def classify_angle_cross_section():
     # todo
     pass
 
 
-def classify_circular_profile():
-    # todo
-    pass
+def classify_chs_cross_section(d: Meter, t: Meter, f_yk: Pascal) -> int:
+    slenderness = d / t
 
+    ct_limits = ct_limits_chs_elements(f_yk)
 
-if __name__ == "__main__":
-    actual = classify_ssup_element(
-            mm(200), mm(10), MPa(355), alpha=0.5, psi=-1, comp_free_edge=False
-        )    
-    pass
+    for section_class, slenderness_limit in reversed(list(ct_limits.items())):
+        if not slenderness <= slenderness_limit:
+            return section_class + 1
+
+    return 1
+    
+
+def ct_limits_chs_elements(f_yk: Pascal) -> Dict[int, float]:
+    eps = calc_epsilon(f_yk)
+    ct_limits = {1: 50 * eps**2,
+                 2: 70 * eps**2,
+                 3: 90 * eps**2,
+                }
+    return ct_limits
