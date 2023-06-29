@@ -2,6 +2,7 @@
 """
 
 from pytest import fixture, raises, approx
+from eurocodedesign.units import Pascal, MPa, mm
 import eurocodedesign.standard.ec3.crosssectionclassification as csc
 import eurocodedesign.geometry.steelsections as sec
 import eurocodedesign.materials.structuralsteel as stl
@@ -62,231 +63,266 @@ def shs120x3():
     return sec.get("SHS120x3")
 
 
-class TestBoundaryValuesForDoubleSupportedElements:
-    def test_class_one_with_alpha_lt_half(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(0.4, 1.0, 1)
-        assert ct_bound == approx(90)
+class TestClassifyDsupElement:
+    def test_355MPa_default_values_class_4(self):
+        actual = csc.classify_dsup_element(mm(550), mm(10), MPa(355))
+        expected = 4
+        assert actual == expected
 
-    def test_class_one_with_alpha_eq_half(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(0.5, 1.0, 1)
-        assert ct_bound == approx(72)
+    def test_355MPa_default_values_class_3(self):
+        actual = csc.classify_dsup_element(mm(330), mm(10), MPa(355))
+        expected = 3
+        assert actual == expected
 
-    def test_class_one_with_alpha_eq_one(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(1.0, 1.0, 1)
-        assert ct_bound == approx(33)
+    def test_355MPa_default_values_class_2(self):
+        actual = csc.classify_dsup_element(mm(290), mm(10), MPa(355))
+        expected = 2
+        assert actual == expected
 
-    def test_class_one_with_alpha_gt_half_and_epsilon(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(0.6, 0.81, 1)
-        assert ct_bound == approx(47.1705882)
+    def test_355MPa_default_values_class_1(self):
+        actual = csc.classify_dsup_element(mm(250), mm(10), MPa(355))
+        expected = 1
+        assert actual == expected
 
-    def test_class_one_with_alpha_lt_half_and_epsilon(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(0.4, 0.81, 1)
-        assert ct_bound == approx(72.9)
+    def test_235MPa_user_defined_alpha_value(self):
+        with raises(
+            ValueError,
+            match=r"The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'.",
+        ):
+            csc.classify_dsup_element(mm(250), mm(10), MPa(235), alpha=0.5)
 
-    def test_class_two_with_alpha_lt_half(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(0.4, 1.0, 2)
-        assert ct_bound == approx(103.75)
+    def test_235MPa_user_defined_psi_value(self):
+        with raises(
+            ValueError,
+            match=r"The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'.",
+        ):
+            csc.classify_dsup_element(mm(250), mm(10), MPa(235), psi=0.5)
 
-    def test_class_two_with_alpha_eq_half(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(0.5, 1.0, 2)
-        assert ct_bound == approx(83)
-
-    def test_class_two_w_alpha_eq_one(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(1.0, 1.0, 2)
-        assert ct_bound == approx(38)
-
-    def test_class_two_with_alpha_gt_half_and_epsilon(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(0.6, 0.81, 2)
-        assert ct_bound == approx(54.317647)
-
-    def test_class_two_with_alpha_lt_half_and_epsilon(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(0.4, 0.81, 2)
-        assert ct_bound == approx(84.0375)
-
-    def test_class_three_with_psi_gt_negative_one(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(-0.5, 1.0, 3)
-        assert ct_bound == approx(83.1683168)
-
-    def test_class_three_with_psi_lt_negative_one(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(-1.5, 1.0, 3)
-        assert ct_bound == approx(189.835455)
-
-    def test_class_three_with_psi_eq_negative_one_and_epsilon(self):
-        ct_bound = csc._boundary_ct_for_double_supported_elements(-1.0, 0.81, 3)
-        assert ct_bound == approx(100.44)
-
-    def test_invalid_section_class(self):
-        with raises(ValueError, match="Invalid section class: '5'"):
-            csc._boundary_ct_for_double_supported_elements(-1.0, 0.81, 5)
-
-
-class TestAlphaForMajorAxisSymmetricSections:
-    def test_no_normal_force(self, ipe270, S235_thin_material):
-        normal_force = 0
-        expected = (219.6 / 2 + 0 / 2) / 219.6
-        actual = csc._alpha_for_major_axis_symmetric_sections(
-            ipe270, S235_thin_material, normal_force, ipe270.root_radius
+    def test_235MPa_user_defined_alpha_and_psi_values_class1(self):
+        actual = csc.classify_dsup_element(
+            mm(250), mm(10), MPa(235), alpha=0.5, psi=0.5
         )
+        expected = 1
+        assert actual == expected
+
+
+class TestCtLimitsDsupElements:
+    def test_235MPa_pure_bending(self):
+        actual = csc.ct_limits_dsup_elements(MPa(235), 0.5, -1)
+        expected = {1: 72, 2: 83, 3: 124}
+        assert actual == expected
+
+    def test_235MPa_pure_compression(self):
+        actual = csc.ct_limits_dsup_elements(MPa(235), 1, 1)
+        expected = {1: 33, 2: 38, 3: 42}
+        assert actual == expected
+
+    def test_235MPa_bending_and_compression(self):
+        actual = csc.ct_limits_dsup_elements(MPa(235), 0.3, -1.3)
+        expected = {1: 120, 2: 138.3333333, 3: 162.5890156}
         assert actual == approx(expected)
 
-    def test_maximum_normal_force(self, ipe270, S235_thin_material):
-        normal_force = 340_599.6  # maximum plastic capacity of web tw*hw*f_yk
-        expected = (219.6 / 2 + 219.6 / 2) / 219.6
-        actual = csc._alpha_for_major_axis_symmetric_sections(
-            ipe270, S235_thin_material, normal_force, ipe270.root_radius
-        )
+
+class TestCtLimitsDsupElementClassOne:
+    def test_alpha_lt_half(self):
+        actual = csc.ct_limit_dsup_element_class_1(MPa(235), 0.4)
+        expected = 90
+        assert actual == expected
+
+    def test_alpha_eq_half(self):
+        actual = csc.ct_limit_dsup_element_class_1(MPa(355), 0.5)
+        expected = 0.8136165135 * 72
         assert actual == approx(expected)
 
-    def test_arbitrary_normal_force(self, ipe270, S235_thin_material):
-        normal_force = 100_000  # maximum plastic capacity of web tw*hw*f_yk
-        expected = (219.6 / 2 + 64.4745326 / 2) / 219.6
-        actual = csc._alpha_for_major_axis_symmetric_sections(
-            ipe270, S235_thin_material, normal_force, ipe270.root_radius
-        )
+    def test_alpha_gt_half(self):
+        actual = csc.ct_limit_dsup_element_class_1(MPa(355), 0.6)
+        expected = 0.8136165135 * 58.23529412
         assert actual == approx(expected)
 
-    def test_normal_force_gt_web_capacity(self, ipe270, S235_thin_material):
-        normal_force = 525_000  # 101% of shear area
-        actual = csc._alpha_for_major_axis_symmetric_sections(
-            ipe270, S235_thin_material, normal_force, ipe270.root_radius
+
+class TestCtLimitsDsupElementClassTwo:
+    def test_alpha_lt_half(self):
+        actual = csc.ct_limit_dsup_element_class_2(MPa(235), 0.4)
+        expected = 103.75
+        assert actual == approx(expected)
+
+    def test_alpha_eq_half(self):
+        actual = csc.ct_limit_dsup_element_class_2(MPa(355), 0.5)
+        expected = 0.8136165135 * 83
+        assert actual == approx(expected)
+
+    def test_alpha_gt_half(self):
+        actual = csc.ct_limit_dsup_element_class_2(MPa(355), 0.6)
+        expected = 0.8136165135 * 67.05882353
+        assert actual == approx(expected)
+
+
+class TestCtLimitsDsupElementClassThree:
+    def test_psi_lt_minus_one(self):
+        actual = csc.ct_limit_dsup_element_class_3(MPa(235), -1.1)
+        expected = 136.554912
+        assert actual == approx(expected)
+
+    def test_psi_eq_minus_one(self):
+        actual = csc.ct_limit_dsup_element_class_3(MPa(235), -1.0)
+        expected = 124
+        assert actual == approx(expected)
+
+    def test_psi_gt_minus_one(self):
+        actual = csc.ct_limit_dsup_element_class_3(MPa(275), -0.9)
+        expected = 0.9244162777 * 112.6005362
+        assert actual == approx(expected)
+
+
+class TestClassifySsupElement:
+    def test_default_values_class_one(self):
+        actual = csc.classify_ssup_element(mm(80), mm(10), MPa(235))
+        expected = 1
+        assert actual == expected
+
+    def test_default_values_class_two(self):
+        actual = csc.classify_ssup_element(mm(95), mm(10), MPa(235))
+        expected = 2
+        assert actual == expected
+
+    def test_default_values_class_three(self):
+        actual = csc.classify_ssup_element(mm(130), mm(10), MPa(235))
+        expected = 3
+        assert actual == expected
+
+    def test_default_values_class_four(self):
+        actual = csc.classify_ssup_element(mm(170), mm(10), MPa(235))
+        expected = 4
+        assert actual == expected
+
+    def test_235MPa_user_defined_alpha_value(self):
+        with raises(
+            ValueError,
+            match=r"The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'.",
+        ):
+            csc.classify_ssup_element(mm(250), mm(10), MPa(235), alpha=0.5)
+
+    def test_235MPa_user_defined_psi_value(self):
+        with raises(
+            ValueError,
+            match=r"The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'.",
+        ):
+            csc.classify_ssup_element(mm(250), mm(10), MPa(235), psi=0.5)
+
+    def test_235MPa_user_defined_alpha_and_psi_values_class3(self):
+        actual = csc.classify_ssup_element(
+            mm(205), mm(10), MPa(235), alpha=0.5, psi=-1.4
         )
-        assert actual == 1.0
+        expected = 3
+        assert actual == expected
 
-
-class TestPsiForMajorAxisSymmetricSections:
-    _normal_force = 1_000_000  # N - compression
-    _bending_moment = 150_000_000  # Nm - compression in top flange
-
-    def test_psi_gt_minus1(self, hea300):
-        actual = csc._psi_for_major_axis_symmetric_sections(
-            self._normal_force, self._bending_moment, hea300
+    def test_235MPa_tension_free_edge_default_alpha_and_psi_class2(self):
+        actual = csc.classify_ssup_element(
+            mm(95), mm(10), MPa(235), comp_free_edge=False
         )
-        assert actual == approx(-0.145168551)
+        expected = 2
+        assert actual == expected
 
-    def test_psi_lt_minus1(self, hea300):
-        # -ve normal force for tension
-        actual = csc._psi_for_major_axis_symmetric_sections(
-            -self._normal_force, self._bending_moment, hea300
+    def test_355MPa_tension_free_edge_user_alpha_and_psi_class1(self):
+        actual = csc.classify_ssup_element(
+            mm(200), mm(10), MPa(355), alpha=0.5, psi=-1, comp_free_edge=False
         )
-        assert actual == approx(-6.888544317)
+        expected = 1
+        assert actual == expected
 
 
-def test_normal_stress():
-    assert csc.normal_stress(100_000, 5000) == 20
+class TestCtLimitsSsupElements:
+    def test_pure_compression(self):
+        actual = csc.ct_limits_ssup_elements(MPa(235), 1.0, 1.0)
+        expected = {1: 9.0, 2: 10.0, 3: 14.0}
+        assert actual == approx(expected)
+
+    def test_compression_free_edge(self):
+        actual = csc.ct_limits_ssup_elements(MPa(235), 0.5, -1.0)
+        expected = {1: 18.0, 2: 20.0, 3: 19.36104336}
+        assert actual == approx(expected)
+
+    def test_tension_free_edge(self):
+        actual = csc.ct_limits_ssup_elements(MPa(235), 0.5, -1.0, comp_free_edge=False)
+        expected = {1: 25.45584412, 2: 28.28427125, 3: 102.4490117}
+        assert actual == approx(expected)
 
 
-def test_bending_stress():
-    assert csc.bending_stress(100_000, 5000) == 20
+class TestCtLimitSsupElementClassOne:
+    def test_275MPa_alpha_eq_one(self):
+        actual = csc.ct_limit_ssup_element_class_1(MPa(275), 1.0)
+        expected = 0.9244162777 * 9
+        assert actual == approx(expected)
+
+    def test_355MPa_alpha_neq_one(self):
+        actual = csc.ct_limit_ssup_element_class_1(MPa(355), 0.5)
+        expected = 0.8136165135 * 9 / 0.5
+        assert actual == approx(expected)
 
 
-def test_c_web_for_symmetric_I_section(ipe270):
-    c_web = csc._c_web_for_symmetric_I_section(ipe270, ipe270.root_radius)
-    assert c_web == 219.6
+class TestCtLimitSsupElementClassTwo:
+    def test_275MPa_alpha_eq_one(self):
+        actual = csc.ct_limit_ssup_element_class_2(MPa(275), 1.0)
+        expected = 0.9244162777 * 10
+        assert actual == approx(expected)
+
+    def test_355MPa_alpha_neq_one(self):
+        actual = csc.ct_limit_ssup_element_class_2(MPa(355), 0.5)
+        expected = 0.8136165135 * 10 / 0.5
+        assert actual == approx(expected)
 
 
-def test_e_from_normal_force(ipe270, S235_thin_material):
-    e = csc._e_from_normal_force(ipe270, S235_thin_material, 100_000, 1.0)
-    assert e == approx(100_000 * 1.0 / 6.6 / S235_thin_material.f_yk)
+class TestCtLimitSsupElementClassThree:
+    def test_275MPa_psi_eq_one(self):
+        actual = csc.ct_limit_ssup_element_class_3(MPa(275), 1.0)
+        expected = 0.9244162777 * 14.0
+        assert actual == approx(expected)
+
+    def test_355MPa_psi_neq_one(self):
+        actual = csc.ct_limit_ssup_element_class_3(MPa(355), 0.0)
+        expected = 0.8136165135 * 21 * 0.7549834435
+        assert actual == approx(expected)
 
 
-class TestBoundaryValuesForSingleSupportedElements:
+class TestCalcKsigma:
+    def test_compression_free_edge(self):
+        actual = csc.calc_k_sigma(0.5)
+        expected = 0.4825
+        assert actual == approx(expected)
+
+    def test_tension_free_edge_gt_zero(self):
+        actual = csc.calc_k_sigma(0.5, comp_free_edge=False)
+        expected = 0.6880952381
+        assert actual == approx(expected)
+
+    def test_tension_free_edge_eq_zero(self):
+        actual = csc.calc_k_sigma(0.0, comp_free_edge=False)
+        expected = 1.7
+        assert actual == approx(expected)
+
+    def test_tension_free_edge_eq_one(self):
+        actual = csc.calc_k_sigma(1.0, comp_free_edge=False)
+        expected = 0.43
+        assert actual == approx(expected)
+
+    def test_tension_free_edge_eq_minus_one(self):
+        actual = csc.calc_k_sigma(-1, comp_free_edge=False)
+        expected = 23.8
+        assert actual == approx(expected)
+
+
+class TestTensionFreeEdgeClassification:
     def test_class_one(self):
-        ct_bound = csc._boundary_ct_for_single_supported_elements(0.81, 1)
-        assert ct_bound == approx(7.29)
+        actual = csc.ct_limit_ssup_element_class_1_tension_free_edge(MPa(235), 0.5)
+        expected = 25.45584412
+        assert actual == approx(expected)
 
     def test_class_two(self):
-        ct_bound = csc._boundary_ct_for_single_supported_elements(1, 2)
-        assert ct_bound == approx(10)
+        actual = csc.ct_limit_ssup_element_class_2_tension_free_edge(MPa(235), 0.5)
+        expected = 28.28427125
+        assert actual == approx(expected)
 
-    def test_class_three(self):
-        ct_bound = csc._boundary_ct_for_single_supported_elements(0.6, 3)
-        assert ct_bound == approx(8.4)
-
-
-class TestSectionSpecificClassificationParameters:
-    # todo
-    def test_shs_parameters(self):
-        actual = csc._rhs_shs_i_section_classification(shs140x4)
-    pass
-
-
-class TestRhsShsISectionClassification:
-    # todo
-    pass
-
-
-class TestSectionClassification:
-    # todo
-    pass
-# class TestRolledISectionClassification:
-#     def test_class_one(self, S235_thin_material, ipe240):
-#         # no compression force only moment
-#         actual = sc._rolled_I_section_classification(
-#             ipe240, S235_thin_material, 0.0, 150_000_000
-#         )
-#         assert actual == 1
-
-#     def test_class_two(self, S235_thin_material, ipe270):
-#         # compression 99% of the web capacity
-#         actual = sc._rolled_I_section_classification(
-#             ipe270, S235_thin_material, 514_000, 0.0
-#         )
-#         assert actual == 2
-
-#     def test_class_three(self, S355_thin_material, ipe270):
-#         # compression 99% of the web capacity
-#         actual = sc._rolled_I_section_classification(
-#             ipe270, S355_thin_material, 775_000, 0.0
-#         )
-#         assert actual == 3
-
-#     def test_class_four(self, S355_thin_material, ipe330):
-#         # compression 99% of the web capacity
-#         actual = sc._rolled_I_section_classification(
-#             ipe330, S355_thin_material, 1_082_000, 0.0
-#         )
-#         assert actual == 4
-
-
-class TestCircularHollowSectionClassification:
-    def test_class_one(self, S235_thin_material, chs219x6):
-        actual = csc._chs_section_classification(chs219x6, S235_thin_material)
-        assert actual == 1
-
-    def test_class_two(self, S235_thin_material, chs323x6):
-        actual = csc._chs_section_classification(chs323x6, S235_thin_material)
-        assert actual == 2
-
-    def test_class_three(self, S355_thin_material, chs323x6):
-        actual = csc._chs_section_classification(chs323x6, S355_thin_material)
-        assert actual == 3
-
-    def test_class_four(self, S355_thin_material, chs355x5):
-        actual = csc._chs_section_classification(chs355x5, S355_thin_material)
-        assert actual == 4
-
-
-# class TestRectangularAndSquareHollowSectionClassification:
-#     def test_class_one(self, S235_thin_material, shs140x4):
-#         actual = sc._rhs_shs_section_classification(
-#             shs140x4, S235_thin_material, 0.0, 20_000_000
-#         )
-#         assert actual == 1
-
-#     def test_class_two(self, S235_thin_material, shs120x3):
-#         actual = sc._rhs_shs_section_classification(
-#             shs120x3, S235_thin_material, 500_000, 0.0
-#         )
-#         assert actual == 2
-
-#     def test_class_three(self, S355_thin_material, shs140x4):
-#         actual = sc._rhs_shs_section_classification(
-#             shs140x4, S355_thin_material, 500_000, 0.0
-#         )
-#         assert actual == 3
-
-#     def test_class_four(self, S355_thin_material, shs120x3):
-#         actual = sc._rhs_shs_section_classification(
-#             shs120x3, S355_thin_material, 500_000, 0.0
-#         )
-#         assert actual == 4
+    def test_class_two(self):
+        actual = csc.ct_limit_ssup_element_class_3_tension_free_edge(MPa(235), -1.0)
+        expected = 102.4490117
+        assert actual == approx(expected)

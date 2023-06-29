@@ -11,7 +11,7 @@
 
 """
 from math import sqrt
-from typing import Tuple, Callable, cast
+from typing import Tuple, Callable, cast, Dict
 from eurocodedesign.geometry.steelsections import (
     SteelSection,
     ISection,
@@ -21,383 +21,193 @@ from eurocodedesign.geometry.steelsections import (
     RectangularHollowSection,
 )
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
-from eurocodedesign.units import Newton, Meter_2, Pascal, N, mm2, N_per_mm2, Meter, Newtonmeter, Meter_3
-
-
-def _section_classification(
-    section: SteelSection,
-    material: BasicStructuralSteel,
-    axial_force: Newton = Newton(0),
-    bending_moment: Newtonmeter = Newtonmeter(0),
-) -> int:
-    # based on section type call the appropriate function to calculate class
-    # todo
-    if isinstance(section, CircularHollowSection):
-        section_class = _chs_section_classification(section, material)
-
-    elif (
-        isinstance(section, RectangularHollowSection)
-        or isinstance(section, SquareHollowSection)
-        or isinstance(section, ISection)
-    ):
-        section_class = _rhs_shs_i_section_classification(
-            section, material, axial_force, bending_moment
-        )
-
-    else:
-        raise NotImplementedError(f"Section type currently not supported")
-
-    return section_class
-
-
-def _rhs_shs_i_section_classification(
-    section: ISection | RectangularHollowSection | SquareHollowSection,
-    material: BasicStructuralSteel,
-    axial_force: Newton,
-    bending_moment: Newtonmeter,
-) -> int:
-    (
-        web_slenderness,
-        flange_slenderness,
-        weld_radius,
-        limit_function,
-    ) = _section_specific_classification_parameters(section)
-    # flange_slenderness = _flange_slenderness(section)
-    epsilon = calc_epsilon(material.f_yk)
-
-    # try from least strict to most strict class until criteria not satisfied
-    for section_class in [3, 2, 1]:
-        if section_class == 3:
-            distribution_parameter = _psi_for_major_axis_symmetric_sections(
-                axial_force, bending_moment, section
-            )
-        else:
-            distribution_parameter = _alpha_for_major_axis_symmetric_sections(
-                section, material, axial_force, weld_radius
-            )
-
-        if not limit_function(
-            web_slenderness,
-            flange_slenderness,
-            distribution_parameter,
-            epsilon,
-            section_class,
-        ):
-            return section_class + 1
-    return 1
-
-
-def _section_specific_classification_parameters(
-    section: SteelSection,
-) -> Tuple[float, float, Meter, Callable[..., bool]]:
-    # returns the correct web slenderness depending on the section type
-    # todo
-    weld_radius: Meter
-
-    if isinstance(section, RolledISection):
-        web_slenderness = _web_slenderness_for_I_section(section)
-        flange_slenderness = _flange_slenderness_for_symmetric_I_section(section)
-        weld_radius = cast(Meter, section.root_radius) #todo fix root radius type
-        slenderness_limit_func = i_section_web_and_flange_slenderness_lt_limit
-
-    elif isinstance(section, RectangularHollowSection) or isinstance(
-        section, SquareHollowSection
-    ):
-        web_slenderness = _web_slenderness_for_rhs_shs_sections(section)
-        flange_slenderness = _flange_slenderness_for_rhs_shs_sections(section)
-        weld_radius = cast(Meter, section.outer_corner_radius) #todo fix outer corner radius type
-        slenderness_limit_func = shs_rhs_web_and_flange_slenderness_lt_limit
-
-    return (
-        web_slenderness,
-        flange_slenderness,
-        weld_radius,
-        slenderness_limit_func,
-    )
-
-
-def shs_rhs_web_and_flange_slenderness_lt_limit(
-    web_slenderness: float,
-    flange_slenderness: float,
-    distribution_parameter: float,
-    epsilon: float,
-    section_class: int,
-) -> bool:
-    # todo: refactor
-    web_limit = _boundary_ct_for_double_supported_elements(
-        distribution_parameter, epsilon, section_class
-    )
-    flange_limit = _boundary_ct_for_double_supported_elements(1, epsilon, section_class)
-    if web_slenderness <= web_limit and flange_slenderness <= flange_limit:
-        return True
-    else:
-        return False
-
-
-def i_section_web_and_flange_slenderness_lt_limit(
-    web_slenderness: float,
-    flange_slenderness: float,
-    distribution_parameter: float,
-    epsilon: float,
-    section_class: int,
-) -> bool:
-    # todo: refactor
-    web_limit = _boundary_ct_for_double_supported_elements(
-        distribution_parameter, epsilon, section_class
-    )
-    flange_limit = _boundary_ct_for_single_supported_elements(epsilon, section_class)
-    if web_slenderness <= web_limit and flange_slenderness <= flange_limit:
-        return True
-    else:
-        return False
-
-
-def _chs_section_classification(
-    section: CircularHollowSection, material: BasicStructuralSteel
-) -> int:
-    slenderness = _slenderness_for_chs_elements(section)
-    epsilon = calc_epsilon(material.f_yk)
-    for section_class in [3, 2, 1]:
-        if not slenderness <= _boundary_ct_for_chs_elements(epsilon, section_class):
-            return section_class + 1
-    return 1
-
-
-### GENERAL LIMITS AND STUFF
-def _boundary_ct_for_double_supported_elements(
-    distribution_parameter: float, epsilon: float, section_class: int
-) -> float:
-    """Returns the boundary value of c/t for doubly supported elements
-
-    The boundary values are calculated using the equations provided in Table 5.2
-    of Eurocode 3.
-
-    Args:
-        distribution_parameter (float): alpha or psi parameters depending on the
-            choic of section_class
-        epsilon (float): modification factor for steel different steel strengths
-        section_class: the section class boundaries considered. One of 1, 2, 3
-
-    Returns:
-        float: the boundary value for c/t
-    """
-    alpha: float
-    if section_class == 1:
-        alpha = distribution_parameter
-        if distribution_parameter > 0.5:
-            return 396 * epsilon / (13 * alpha - 1)
-        else:
-            return 36 * epsilon / alpha
-
-    elif section_class == 2:
-        alpha = distribution_parameter
-        if alpha > 0.5:
-            return 456 * epsilon / (13 * alpha - 1)
-        else:
-            return 41.5 * epsilon / alpha
-
-    elif section_class == 3:
-        psi: float = distribution_parameter
-        if psi > -1:
-            return 42 * epsilon / (0.67 + 0.33 * psi)
-        else:
-            return 62 * epsilon * (1 - psi) * sqrt(-psi)
-
-    else:
-        raise ValueError(f"Invalid section class: '{section_class}'")
-
-
-def _boundary_ct_for_single_supported_elements(
-    epsilon: float, section_class: int
-) -> float:
-    # only considers the flange fully in compressionas this is worst case but
-    # also the easiest to calculate
-    if section_class == 1:
-        return 9 * epsilon
-    elif section_class == 2:
-        return 10 * epsilon
-    elif section_class == 3:
-        return 14 * epsilon
-    else:
-        raise ValueError('Invalid cross-section class ', section_class)
-
-
-def normal_stress(normal_force: Newton, area: Meter_2) -> Pascal:
-    return normal_force / area
-
-
-def bending_stress(bending_moment: Newtonmeter, section_modulus: Meter_3) -> Pascal:
-    return bending_moment / section_modulus
+from eurocodedesign.units import (
+    Newton,
+    Meter_2,
+    Pascal,
+    MPa,
+    N,
+    mm,
+    N_per_mm2,
+    Meter,
+    Newtonmeter,
+    Meter_3,
+)
 
 
 def calc_epsilon(f_yk: Pascal) -> float:
     """Calculates the material specific epsilon factor
-
-    Typical values:
 
     Args:
         f_yk (Pascal): The f_y value (yield stress) of the material
     Returns:
         float: the epsilon value according to EN 1993-1-1:2012-12 Tab.5.2
     """
-    return sqrt(235*N_per_mm2() / f_yk)
+    if not isinstance(f_yk, Pascal):
+        raise TypeError("'f_yk' must be of type 'Pascal'.")
+    return sqrt(235 * MPa() / f_yk)
 
 
-def _e_from_normal_force(
-    section: ISection | SquareHollowSection | RectangularHollowSection,
-    material: BasicStructuralSteel,
-    axial_force: Newton,
-    gamma_M0: float = 1.0, # todo load gamma values from somewhere else
-) -> Meter:
-    """Calculates the length of the web required to carry the axial force
+def calc_k_sigma(psi: float, comp_free_edge: bool = True) -> float:
+    if comp_free_edge:
+        return 0.57 - 0.21 * psi + 0.07 * psi**2
 
-    The web is assumed to be completely plastified. The axial load is assumed
-    to be completely carried by the web.
+    if psi == 1:
+        return 0.43
+    if psi >= 0:
+        return 0.578 / (psi + 0.34)
 
-    Args:
-        section (ISection|SquareHollowSection|RectangularHollowSection):
-            section to analyse
-        material (BasicStructuralSteel): steel material of the cross-section
-        axial_force (float): axial acting on the section
-        gamma_M0 (float): partial safety factor for steel materials.
-            Default: 1.0
+    return 1.7 - 5 * psi + 17.1 * psi**2
 
-    Returns:
-        Meter: length of web required to carry the axial force
-    """
-    if isinstance(section, ISection):
-        return cast(Meter, axial_force * gamma_M0 / (material.f_yk * section.web_thickness))  # todo fix ISecion.web_thickness type
-    elif (isinstance(section, SquareHollowSection) or
-          isinstance(section, RectangularHollowSection)):
-        return cast(Meter, axial_force * gamma_M0 / (material.f_yk * 2 * Meter(section.wall_thickness)))
-    else:
-        raise NotImplementedError(
-            f"Section Classification for {section.name} is not yet implemented"
+
+def classify_dsup_element(
+    c: Meter, t: Meter, f_yk: Pascal, alpha: float = 1.0, psi: float = 1.0
+) -> int:
+    slenderness = c / t
+
+    if alpha != 1.0 and psi == 1.0:
+        raise ValueError(
+            "The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'."
         )
 
-
-def _psi_for_major_axis_symmetric_sections(
-    axial_force: Newton,
-    bending_moment: Newtonmeter,
-    section: ISection | SquareHollowSection | RectangularHollowSection,
-) -> float:
-    # compression is +, positive moment is tension on bottom
-    stress_N = normal_stress(axial_force, cast(Meter_2, section.area)) # todo fix section area type
-    stress_M = bending_stress(bending_moment, cast(Meter_3, section.elastic_section_modulus_y)) # todo fix modulus_y type
-    top_stress = stress_N + stress_M
-    bottom_stress = stress_N - stress_M
-    return bottom_stress / top_stress
-
-
-def _alpha_for_major_axis_symmetric_sections(
-    section: ISection | RectangularHollowSection | SquareHollowSection,
-    material: BasicStructuralSteel,
-    axial_force: Newton,
-    weld_or_radius: Meter, # TODO rename to weld_thickness?
-) -> float:
-    """calculates the alpha value for sections symmetric about their major axis
-
-    alpha is the fraction of the total clear length of the web(s) that is loaded
-    in compression considering the given axial force and the corresponding
-    maximum moment capacity of the cross-section (fully plastic)
-
-    Args:
-        section (ISection | RectangularHollowSection | SquareHollowSection):
-            section to analyse
-        material (BasicStructuralSteel): steel material of the cross-section
-        axial_force (Newton): axial force acting on cross-section
-        weld_or_radius (Meter): weld thickness or radius between flange and web
-
-    Returns:
-        float: the value of alpha
-    """
-    c: Meter
-    if isinstance(section, ISection):
-        c = _c_web_for_symmetric_I_section(section, weld_or_radius)
-    elif (isinstance(section, RectangularHollowSection) or
-          isinstance(section, SquareHollowSection)):
-        c = _c_web_for_rhs_shs_sections(section)
-    e: Meter = _e_from_normal_force(section, material, axial_force, gamma_M0=1)
-    alpha = min(1.0, ( (c / 2.0) + (e / 2.0)) / c)  # required when N gt capacitiy of web # TODO fix types
-
-    return cast(float, alpha)
-
-
-### ISECTION SPECIFIC STUFF
-def _web_slenderness_for_I_section(section: ISection) -> float:
-    """returns the the slenderness (c/t) value of the web of the I section"""
-    if isinstance(section, RolledISection):
-        return (
-            _c_web_for_symmetric_I_section(section, Meter(section.root_radius)) # todo fix type of root_radius
-            / Meter(section.web_thickness) # TODO fix section.web_thickness type
+    if alpha == 1.0 and psi != 1.0:
+        raise ValueError(
+            "The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'."
         )
+
+    ct_limits = ct_limits_dsup_elements(f_yk, alpha, psi)
+
+    for section_class, slenderness_limit in reversed(list(ct_limits.items())):
+        if not slenderness <= slenderness_limit:
+            return section_class + 1
+
+    return 1
+
+
+def ct_limits_dsup_elements(f_yk: Pascal, alpha: float, psi: float) -> Dict[int, float]:
+    ct_limits = {
+        1: ct_limit_dsup_element_class_1(f_yk, alpha),
+        2: ct_limit_dsup_element_class_2(f_yk, alpha),
+        3: ct_limit_dsup_element_class_3(f_yk, psi),
+    }
+    return ct_limits
+
+
+def ct_limit_dsup_element_class_1(f_yk: Pascal, alpha: float) -> float:
+    eps = calc_epsilon(f_yk)
+    if alpha <= 0.5:
+        return 36 * eps / alpha
     else:
-        raise NotImplementedError(f"section: {section.name} not yet supported")
+        return 396 * eps / (13 * alpha - 1)
 
 
-def _flange_slenderness_for_symmetric_I_section(section: ISection) -> float:
-    """returns the the slenderness (c/t) value of the flange of the I section"""
-    if isinstance(section, RolledISection):
-        return (
-            _c_flange_for_symmetric_I_section(section, Meter(section.root_radius)) # TODO fix type of root_radius
-            / Meter(section.flange_thickness) # todo fix type flange_thickness
+def ct_limit_dsup_element_class_2(f_yk: Pascal, alpha: float) -> float:
+    eps = calc_epsilon(f_yk)
+    if alpha <= 0.5:
+        return 41.5 * eps / alpha
+    else:
+        return 456 * eps / (13 * alpha - 1)
+
+
+def ct_limit_dsup_element_class_3(f_yk: Pascal, psi: float) -> float:
+    eps = calc_epsilon(f_yk)
+    if psi <= -1:
+        return 62 * eps * (1 - psi) * sqrt(-psi)
+    else:
+        return 42 * eps / (0.67 + 0.33 * psi)
+
+
+def classify_ssup_element(
+    c: Meter,
+    t: Meter,
+    f_yk: Pascal,
+    alpha: float = 1.0,
+    psi: float = 1.0,
+    comp_free_edge: bool = True,
+) -> int:
+    slenderness = c / t
+
+    if alpha != 1.0 and psi == 1.0:
+        raise ValueError(
+            "The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'."
         )
-    else:
-        raise NotImplementedError(f"section: {section.name} not yet supported")
+
+    if alpha == 1.0 and psi != 1.0:
+        raise ValueError(
+            "The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'."
+        )
+
+    ct_limits = ct_limits_ssup_elements(f_yk, alpha, psi, comp_free_edge)
+
+    for section_class, slenderness_limit in reversed(list(ct_limits.items())):
+        if not slenderness <= slenderness_limit:
+            return section_class + 1
+
+    return 1
 
 
-def _c_web_for_symmetric_I_section(section: ISection, weld_or_radius: Meter) -> Meter:
-    """calculates the clear length of web between welds or radii, c_web"""
-    return (Meter(section.height) -  cast(Meter, 2.0 * (Meter(section.flange_thickness) + weld_or_radius))) #todo fiy type flange thickness, section_height
+def ct_limits_ssup_elements(
+    f_yk: Pascal, alpha: float, psi: float, comp_free_edge: bool = True
+) -> Dict[int, float]:
+    if comp_free_edge:
+        ct_limits = {
+            1: ct_limit_ssup_element_class_1(f_yk, alpha),
+            2: ct_limit_ssup_element_class_2(f_yk, alpha),
+            3: ct_limit_ssup_element_class_3(f_yk, psi),
+        }
+        return ct_limits
+
+    ct_limits = {
+        1: ct_limit_ssup_element_class_1_tension_free_edge(f_yk, alpha),
+        2: ct_limit_ssup_element_class_2_tension_free_edge(f_yk, alpha),
+        3: ct_limit_ssup_element_class_3_tension_free_edge(f_yk, psi),
+    }
+    return ct_limits
 
 
-def _c_flange_for_symmetric_I_section(
-    section: ISection, weld_or_radius: Meter
-) -> Meter:
-    """calculates the clear length of flange from the edge of the radius or weld"""
-    return cast(Meter, ((Meter(section.flange_width) - cast(Meter, 2.0 * weld_or_radius - Meter(section.web_thickness))) / 2.0)) #TODO fix type web_whickness, flange_width
+def ct_limit_ssup_element_class_1(f_yk: Pascal, alpha: float) -> float:
+    return 9 * calc_epsilon(f_yk) / alpha
 
 
-### CHS Specific Stuff
-def _boundary_ct_for_chs_elements(epsilon: float, section_class: int) -> float:
-    if section_class == 1:
-        return 50 * epsilon**2
-    elif section_class == 2:
-        return 70 * epsilon**2
-    elif section_class == 3:
-        return 90 * epsilon**2
-    raise ValueError('Unsupported section class', section_class)
-
-
-def _slenderness_for_chs_elements(section: CircularHollowSection) -> float:
-    """returns the the slenderness (d/t) value of the CHS section"""
-    return section.diameter / section.wall_thickness
-
-
-### SHS/RHS Specific Stuff
-def _c_web_for_rhs_shs_sections(
-    section: RectangularHollowSection | SquareHollowSection,
-) -> Meter:
-    """Returns the clear distance of the web between the corner radii"""
-    return Meter(section.height - 2 * section.outer_corner_radius) # todo fix types section.height and corner radius
-
-
-def _c_flange_for_rhs_shs_sections(
-    section: RectangularHollowSection | SquareHollowSection,
+def ct_limit_ssup_element_class_1_tension_free_edge(
+    f_yk: Pascal, alpha: float
 ) -> float:
-    """Returns the clear distance of the flange between the corner radii"""
-    return section.width - 2 * section.outer_corner_radius
+    return 9 * calc_epsilon(f_yk) / (alpha * sqrt(alpha))
 
 
-def _web_slenderness_for_rhs_shs_sections(
-    section: RectangularHollowSection | SquareHollowSection,
+def ct_limit_ssup_element_class_2(f_yk: Pascal, alpha: float) -> float:
+    return 10 * calc_epsilon(f_yk) / alpha
+
+
+def ct_limit_ssup_element_class_2_tension_free_edge(
+    f_yk: Pascal, alpha: float
 ) -> float:
-    """returns the the slenderness (c/t) value of web the SHS/RHS section"""
-    return _c_web_for_rhs_shs_sections(section) / Meter(section.wall_thickness) # todo fix type wall_thickness
+    return 10 * calc_epsilon(f_yk) / (alpha * sqrt(alpha))
 
 
-def _flange_slenderness_for_rhs_shs_sections(
-    section: RectangularHollowSection | SquareHollowSection,
-) -> float:
-    """returns the the slenderness (c/t) value of flange the SHS/RHS section"""
-    return _c_flange_for_rhs_shs_sections(section) / section.wall_thickness
+def ct_limit_ssup_element_class_3(f_yk: Pascal, psi: float) -> float:
+    if psi == 1.0:
+        return 14 * calc_epsilon(f_yk)
+
+    return 21 * calc_epsilon(f_yk) * sqrt(calc_k_sigma(psi))
+
+
+def ct_limit_ssup_element_class_3_tension_free_edge(f_yk: Pascal, psi: float) -> float:
+    return 21 * calc_epsilon(f_yk) * sqrt(calc_k_sigma(psi, comp_free_edge=False))
+
+
+def classify_angle_profile():
+    # todo
+    pass
+
+
+def classify_circular_profile():
+    # todo
+    pass
+
+
+if __name__ == "__main__":
+    actual = classify_ssup_element(
+            mm(200), mm(10), MPa(355), alpha=0.5, psi=-1, comp_free_edge=False
+        )    
+    pass
