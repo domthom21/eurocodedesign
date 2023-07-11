@@ -380,7 +380,3 @@ def _is_valid_property(df: pd.DataFrame, prop: str) -> bool:
 def _property_key(prop: str) -> str:
     temp_map = {v["variable_name"]: k for k, v in _PROPERTY_NAME_MAP.items()}
     return temp_map[prop]
-
-
-if __name__ == "__main__":
-    s = get_optimal("IPE", "area", 44, "min")
