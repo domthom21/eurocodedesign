@@ -2,17 +2,25 @@
 STEEL PROFILE CLASSES
 """
 import os
-from typing import Any
+from typing import Any, Dict, List, Type
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import pandas as pd
 from pathlib import Path
 
 from eurocodedesign.geometry.section import BasicSection
 
-
 @dataclass(frozen=True)
 class SteelSection(BasicSection):
+    # properties common among all steel sections (incl. major axis bending)
+    weight: float = field(kw_only=True)
+    perimeter: float = field(kw_only=True)
+    area: float = field(kw_only=True)
+    shear_area_z: float = field(kw_only=True)
+    second_moment_of_area_y: float = field(kw_only=True)
+    radius_of_gyration_y: float = field(kw_only=True)
+    elastic_section_modulus_y: float = field(kw_only=True)
+    plastic_section_modulus_y: float = field(kw_only=True)
     # add functionality if required later
     # ??? possible functionality could include calculation of axial, shear, and
     # ??? bending moment strengths -- with a steel material class as input
@@ -31,7 +39,19 @@ class WeldedSection(SteelSection):
 
 @dataclass(frozen=True)
 class ISection(SteelSection):
-    pass
+    height: float = field(kw_only=True)
+    flange_width: float = field(kw_only=True)
+    web_thickness: float = field(kw_only=True)
+    flange_thickness: float = field(kw_only=True)
+    shear_area_y: float = field(kw_only=True)
+    second_moment_of_area_z: float = field(kw_only=True)
+    radius_of_gyration_z: float = field(kw_only=True)
+    elastic_section_modulus_z: float = field(kw_only=True)
+    plastic_section_modulus_z: float = field(kw_only=True)
+    torsion_constant: float = field(kw_only=True)
+    torsion_modulus: float = field(kw_only=True)
+    warping_constant: float = field(kw_only=True)
+    warping_modulus: float = field(kw_only=True)
 
 
 @dataclass(frozen=True)
@@ -41,89 +61,38 @@ class HollowSection(SteelSection):
 
 @dataclass(frozen=True)
 class RolledISection(RolledSection, ISection):
-    height: float
-    flange_width: float
-    web_thickeness: float
-    flange_thickness: float
-    root_radius: float
-    weight: float
-    perimeter: float
-    area: float
-    shear_area_z: float
-    shear_area_y: float
-    second_moment_of_area_y: float
-    radius_of_gyration_y: float
-    elastic_section_modulus_y: float
-    plastic_section_modulus_y: float
-    second_moment_of_area_z: float
-    radius_of_gyration_z: float
-    elastic_section_modulus_z: float
-    plastic_section_modulus_z: float
-    torsion_constant: float
-    torsion_modulus: float
-    warping_constant: float
-    warping_modulus: float
+    root_radius: float = field(kw_only=True)
 
 
 @dataclass(frozen=True)
 class CircularHollowSection(HollowSection):
-    diameter: float
-    wall_thickness: float
-    weight: float
-    perimeter: float
-    area: float
-    shear_area: float
-    second_moment_of_area: float
-    radius_of_gyration: float
-    elastic_section_modulus: float
-    plastic_section_modulus: float
-    torsion_constant: float
-    torsion_modulus: float
-    manufacture_method: str
+    diameter: float = field(kw_only=True)
+    wall_thickness: float = field(kw_only=True)
+    torsion_constant: float = field(kw_only=True)
+    torsion_modulus: float = field(kw_only=True)
+    manufacture_method: str = field(kw_only=True)
 
 
 @dataclass(frozen=True)
 class RectangularHollowSection(HollowSection):
-    height: float
-    width: float
-    wall_thickness: float
-    outer_corner_radius: float
-    inner_corner_radius: float
-    weight: float
-    perimeter: float
-    area: float
-    shear_area_z: float
-    shear_area_y: float
-    second_moment_of_area_y: float
-    radius_of_gyration_y: float
-    elastic_section_modulus_y: float
-    plastic_section_modulus_y: float
-    second_moment_of_area_z: float
-    radius_of_gyration_z: float
-    elastic_section_modulus_z: float
-    plastic_section_modulus_z: float
-    torsion_constant: float
-    torsion_modulus: float
-    manufacture_method: str
+    height: float = field(kw_only=True)
+    width: float = field(kw_only=True)
+    wall_thickness: float = field(kw_only=True)
+    outer_corner_radius: float = field(kw_only=True)
+    inner_corner_radius: float = field(kw_only=True)
+    shear_area_y: float = field(kw_only=True)
+    second_moment_of_area_z: float = field(kw_only=True)
+    radius_of_gyration_z: float = field(kw_only=True)
+    elastic_section_modulus_z: float = field(kw_only=True)
+    plastic_section_modulus_z: float = field(kw_only=True)
+    torsion_constant: float = field(kw_only=True)
+    torsion_modulus: float = field(kw_only=True)
+    manufacture_method: str = field(kw_only=True)
 
 
 @dataclass(frozen=True)
-class SquareHollowSection(HollowSection):
-    width: float
-    wall_thickness: float
-    outer_corner_radius: float
-    inner_corner_radius: float
-    weight: float
-    perimeter: float
-    area: float
-    shear_area: float
-    second_moment_of_area: float
-    radius_of_gyration: float
-    elastic_section_modulus: float
-    plastic_section_modulus: float
-    torsion_constant: float
-    torsion_modulus: float
-    manufacture_method: str
+class SquareHollowSection(RectangularHollowSection):
+    pass
 
 
 """
@@ -157,6 +126,73 @@ _SECTION_DATA = {
     },
 }
 
+# used to link the variable names in the csv data to variable names in code
+_PROPERTY_NAME_MAP: Dict[str, Dict[str, Type[float] | Type[str] | str]] = { # TODO change float to abstractunit
+    "h": {"variable_name" : "height",
+          "type": float},
+    "b": {"variable_name" : "flange_width",
+          "type": float},
+    "tw": {"variable_name" : "web_thickness",
+          "type": float},
+    "tf": {"variable_name" : "flange_thickness",
+          "type": float},
+    "r": {"variable_name" : "root_radius",
+          "type": float},
+    "m": {"variable_name" : "weight",
+          "type": float},
+    "P": {"variable_name" : "perimeter",
+          "type": float},
+    "A": {"variable_name" : "area",
+          "type": float},
+    "Avz": {"variable_name" : "shear_area_z",
+          "type": float},
+    "Avy": {"variable_name" : "shear_area_y",
+          "type": float},
+    "Iy": {"variable_name" : "second_moment_of_area_y",
+          "type": float},
+    "iy": {"variable_name" : "radius_of_gyration_y",
+          "type": float},
+    "Wely": {"variable_name" : "elastic_section_modulus_y",
+          "type": float},
+    "Wply": {"variable_name" : "plastic_section_modulus_y",
+          "type": float},
+    "Iz": {"variable_name" : "second_moment_of_area_z",
+          "type": float},
+    "iz": {"variable_name" : "radius_of_gyration_z",
+          "type": float},
+    "Welz": {"variable_name" : "elastic_section_modulus_z",
+          "type": float},
+    "Wplz": {"variable_name" : "plastic_section_modulus_z",
+          "type": float},
+    "IT": {"variable_name" : "torsion_constant",
+          "type": float},
+    "WT": {"variable_name" : "torsion_modulus",
+          "type": float}, 
+    "Iw": {"variable_name" : "warping_constant",
+          "type": float},
+    "Ww": {"variable_name" : "warping_modulus",
+          "type": float},
+    "t": {"variable_name" : "wall_thickness",
+          "type": float},
+    "ro": {"variable_name" : "outer_corner_radius",
+          "type": float},
+    "ri": {"variable_name" : "inner_corner_radius",
+          "type": float},
+    "manufacture" : {"variable_name": "manufacture_method",
+                     "type": str},
+    "Av": {"variable_name" : "shear_area_z",
+          "type": float}, # for CHS and SHS sections
+    "I": {"variable_name" : "second_moment_of_area_y",
+          "type": float}, # for CHS and SHS sections
+    "i": {"variable_name" : "radius_of_gyration_y",
+          "type": float}, # for CHS and SHS sections
+    "Wel": {"variable_name" : "elastic_section_modulus_y",
+          "type": float}, # for CHS and SHS sections
+    "Wpl": {"variable_name" : "plastic_section_modulus_y",
+          "type": float}, # for CHS and SHS sections
+    "D": {"variable_name" : "diameter",
+          "type": float}, # for CHS and SHS sections
+}
 
 """
 MODULE LEVEL DEFINITIONS
@@ -199,8 +235,13 @@ def _import_section_database(section_type: str) -> pd.DataFrame:
         pd.DataFrame: containing all the geometric data for
         the profiles for the provided section_type
     """
+
     filepath = _get_data_path() / str(_SECTION_DATA[section_type]["filename"])
-    return pd.read_csv(filepath, index_col=0)
+    df = pd.read_csv(filepath, index_col=0)
+    df = df.iloc[1:]
+    cols = df.columns.difference(['manufacture'])
+    df[cols] = df[cols].astype(float)
+    return df
 
 
 def _is_valid_section(section: str, section_df: pd.DataFrame) -> bool:
@@ -291,8 +332,13 @@ def _get_section(section_name: str) -> SteelSection:
     section_class = _SECTION_DATA[section_type]["section_class"]
     if not isinstance(section_class, type(SteelSection)):
         raise TypeError
-    return section_class(section_name, *section_props.tolist())
+    return section_class(section_name, **_map_property_names(section_props))
+
+
+def _map_property_names(section_props: Any) -> Dict[str, Any]: 
+    return {str(_PROPERTY_NAME_MAP[k]["variable_name"]): _PROPERTY_NAME_MAP[k]["type"](v) for k, v in section_props.items()} # type: ignore[operator]
 
 
 def get(section_name: str) -> SteelSection:
     return _get_section(section_name)
+

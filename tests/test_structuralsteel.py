@@ -3,6 +3,7 @@
 
 from pytest import fixture, raises
 import eurocodedesign.materials.structuralsteel as ss
+from eurocodedesign.units import N_per_mm2
 
 
 @fixture
@@ -16,19 +17,19 @@ def S235_thick_material():
 
 
 def test_fy_getter_with_thin_material(S235_thin_material):
-    assert S235_thin_material.f_yk == 235
+    assert S235_thin_material.f_yk == 235*N_per_mm2()
 
 
 def test_fu_getter_with_thin_material(S235_thin_material):
-    assert S235_thin_material.f_uk == 360
+    assert S235_thin_material.f_uk == 360*N_per_mm2()
 
 
 def test_fy_getter_with_thick_material(S235_thick_material):
-    assert S235_thick_material.f_yk == 215
+    assert S235_thick_material.f_yk == 215*N_per_mm2()
 
 
 def test_fu_getter_with_thick_material(S235_thick_material):
-    assert S235_thick_material.f_uk == 360
+    assert S235_thick_material.f_uk == 360*N_per_mm2()
 
 
 def test_get_for_structural_steel_types_with_steel_in_library_t_less_equal_40(
@@ -49,11 +50,11 @@ def test_get_for_structural_steel_types_with_steel_not_in_library():
 
 
 def test_property_E(S235_thick_material):
-    assert S235_thick_material.E == 210_000
+    assert S235_thick_material.E == 210_000*N_per_mm2()
 
 
 def test_property_G(S235_thick_material):
-    assert S235_thick_material.G == 81_000
+    assert S235_thick_material.G == 81_000*N_per_mm2()
 
 
 def test_property_alpha(S235_thick_material):

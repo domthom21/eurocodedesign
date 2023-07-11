@@ -21,7 +21,7 @@ from abc import ABC
 from enum import Enum, unique, auto
 from functools import partial
 import sys
-from typing import TypeAlias, Type, Optional
+from typing import TypeAlias, Type, Optional, overload
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -146,6 +146,18 @@ class AbstractUnit(ABC):
     def __rmul__(self, other: object) -> AbstractUnit:
         return self * other
 
+    # todo extend overloads
+    @overload
+    def __truediv__(self, other: Meter) -> float: ...
+    @overload
+    def __truediv__(self, other: Meter_2) -> Pascal: ...
+    @overload
+    def __truediv__(self, other: Pascal) -> float: ...
+    @overload
+    def __truediv__(self, other: Meter_3) -> Pascal: ...
+    @overload
+    def __truediv__(self, other: object) -> AbstractUnit | float: ...
+
     def __truediv__(self, other: object) -> AbstractUnit | float:
         if isinstance(other, (int, float)):
             return type(self)(self._value
@@ -190,7 +202,7 @@ class AbstractUnit(ABC):
     def __eq__(self, other: object) -> bool:
         if (not isinstance(other, AbstractUnit) or
                 self._physical_type != other._physical_type):
-            raise TypeError
+            raise TypeError('Self type: ', type(self), 'Other type: ', type(other))
         return self._value == other._value
 
     def __ne__(self, other: object) -> bool:
@@ -335,6 +347,12 @@ square_millimeter = partial(Meter_2, prefix=Prefix.milli)
 mm2 = square_millimeter
 cubic_centimeter = partial(Meter_3, prefix=Prefix.centi)
 cm3 = cubic_centimeter
+cubic_millimeter = partial(Meter_3, prefix=Prefix.milli)
+mm3 = cubic_millimeter
+quartic_centimeter = partial(Meter_4, prefix=Prefix.centi)
+cm4 = quartic_centimeter
+quartic_millimeter = partial(Meter_4, prefix=Prefix.milli)
+mm4 = quartic_millimeter
 
 
 kiloNewton = partial(Newton, prefix=Prefix.kilo)
@@ -343,3 +361,8 @@ kN = kiloNewton
 GigaPascal = partial(Pascal, prefix=Prefix.giga)
 MegaPascal = partial(Pascal, prefix=Prefix.mega)
 MPa = MegaPascal
+N_per_mm2 = MegaPascal
+GPa = GigaPascal
+
+
+

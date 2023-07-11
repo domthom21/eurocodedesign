@@ -76,14 +76,15 @@ Ready to contribute? Here's how to set up `eurocodedesign` for local development
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the
+5. When you're done making changes, check that your changes pass flake8, mypy and the
    tests, including testing other Python versions with tox::
 
     $ flake8 eurocodedesign tests
+    $ python -m mypy --config-file mypy.ini -p eurocodedesign
     $ python setup.py test or pytest
     $ tox
 
-   To get flake8 and tox, just pip install them into your virtualenv.
+   To get flake8, mypy and tox, just pip install them into your virtualenv.
 
 6. Commit your changes and push your branch to GitHub::
 
