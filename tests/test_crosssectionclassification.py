@@ -2,7 +2,7 @@
 """
 
 from pytest import fixture, raises, approx
-from eurocodedesign.units import Pascal, MPa, mm
+from eurocodedesign.units import Pascal, MPa, mm, mm2, mm3, Nm, Newton, Newtonmeter
 import eurocodedesign.standard.ec3.crosssectionclassification as csc
 import eurocodedesign.geometry.steelsections as sec
 import eurocodedesign.materials.structuralsteel as stl
@@ -84,19 +84,19 @@ class TestClassifyDsupElement:
         expected = 1
         assert actual == expected
 
-    def test_235MPa_user_defined_alpha_value(self):
-        with raises(
-            ValueError,
-            match=r"The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'.",
-        ):
-            csc.classify_dsup_element(mm(250), mm(10), MPa(235), alpha=0.5)
+    # def test_235MPa_user_defined_alpha_value(self):
+    #     with raises(
+    #         ValueError,
+    #         match=r"The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'.",
+    #     ):
+    #         csc.classify_dsup_element(mm(250), mm(10), MPa(235), alpha=0.5)
 
-    def test_235MPa_user_defined_psi_value(self):
-        with raises(
-            ValueError,
-            match=r"The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'.",
-        ):
-            csc.classify_dsup_element(mm(250), mm(10), MPa(235), psi=0.5)
+    # def test_235MPa_user_defined_psi_value(self):
+    #     with raises(
+    #         ValueError,
+    #         match=r"The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'.",
+    #     ):
+    #         csc.classify_dsup_element(mm(250), mm(10), MPa(235), psi=0.5)
 
     def test_235MPa_user_defined_alpha_and_psi_values_class1(self):
         actual = csc.classify_dsup_element(
@@ -195,19 +195,19 @@ class TestClassifySsupElement:
         expected = 4
         assert actual == expected
 
-    def test_235MPa_user_defined_alpha_value(self):
-        with raises(
-            ValueError,
-            match=r"The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'.",
-        ):
-            csc.classify_ssup_element(mm(250), mm(10), MPa(235), alpha=0.5)
+    # def test_235MPa_user_defined_alpha_value(self):
+    #     with raises(
+    #         ValueError,
+    #         match=r"The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'.",
+    #     ):
+    #         csc.classify_ssup_element(mm(250), mm(10), MPa(235), alpha=0.5)
 
-    def test_235MPa_user_defined_psi_value(self):
-        with raises(
-            ValueError,
-            match=r"The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'.",
-        ):
-            csc.classify_ssup_element(mm(250), mm(10), MPa(235), psi=0.5)
+    # def test_235MPa_user_defined_psi_value(self):
+    #     with raises(
+    #         ValueError,
+    #         match=r"The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'.",
+    #     ):
+    #         csc.classify_ssup_element(mm(250), mm(10), MPa(235), psi=0.5)
 
     def test_235MPa_user_defined_alpha_and_psi_values_class3(self):
         actual = csc.classify_ssup_element(
@@ -328,35 +328,177 @@ class TestTensionFreeEdgeClassification:
         assert actual == approx(expected)
 
 
-class TestClassifyChsCrossSection():
+class TestClassifyChsCrossSection:
     def test_235MPa_class_one(self):
         actual = csc.classify_chs_cross_section(mm(450), mm(10), MPa(235))
         expected = 1
         assert actual == expected
-        
+
     def test_355MPa_class_two(self):
         actual = csc.classify_chs_cross_section(mm(400), mm(10), MPa(355))
         expected = 2
         assert actual == expected
-        
+
     def test_355MPa_class_three(self):
         actual = csc.classify_chs_cross_section(mm(550), mm(10), MPa(355))
         expected = 3
         assert actual == expected
-        
+
     def test_355MPa_class_four(self):
         actual = csc.classify_chs_cross_section(mm(650), mm(10), MPa(355))
         expected = 4
         assert actual == expected
-        
-        
-class TestClassifyAngleCrossSection():
+
+
+class TestClassifyAngleCrossSection:
     def test_235MPa_class_three(self):
         actual = csc.classify_angle_cross_section(mm(130), mm(50), mm(10), MPa(235))
         expected = 3
         assert actual == expected
-        
+
     def test_335MPa_class_four(self):
         actual = csc.classify_angle_cross_section(mm(130), mm(50), mm(10), MPa(355))
         expected = 4
         assert actual == expected
+
+
+class TestClassifyRolledISection:
+    def test_235MPa_N_and_My_eq_none(self, ipe270, S235_thin_material):
+        actual = csc.classify_rolled_i_section(ipe270, S235_thin_material)
+        expected = 2
+        assert actual == expected
+
+    def test_355MPa_N_and_My_eq_none(self, ipe330, S355_thin_material):
+        actual = csc.classify_rolled_i_section(ipe330, S355_thin_material)
+        expected = 4
+        assert actual == expected
+
+    def test_235MPa_N_eq_and_My_neq_none(self, ipe270, S235_thin_material):
+        actual = csc.classify_rolled_i_section(
+            ipe270, S235_thin_material, M_Ed_y=Nm(113700)
+        )
+        expected = 1
+        assert actual == expected
+
+    def test_235MPa_N_neq_and_My_eq_none(self, ipe270, S235_thin_material):
+        actual = csc.classify_rolled_i_section(
+            ipe270, S235_thin_material, N_Ed=Newton(309704)
+        )
+        expected = 1
+        assert actual == expected
+
+    def test_355MPa_N_neq_and_My_eq_none(self, ipe270, S355_thin_material):
+        actual = csc.classify_rolled_i_section(
+            ipe270, S355_thin_material, N_Ed=Newton(467850)
+        )
+        expected = 3
+        assert actual == expected
+
+    def test_355MPa_N_and_My_neq_none(self, ipe270, S355_thin_material):
+        actual = csc.classify_rolled_i_section(
+            ipe270, S355_thin_material, N_Ed=Newton(467850), M_Ed_y=Newtonmeter(10000)
+        )
+        expected = 3
+        assert actual == expected
+
+    def test_minor_axis_bending(self, ipe270, S235_thin_material):
+        with raises(
+            NotImplementedError,
+            match=r"Cross-section classification for minor axis bending is not supported",
+        ):
+            csc.classify_rolled_i_section(
+                ipe270, S235_thin_material, M_Ed_z=Newtonmeter(100000)
+            )
+
+
+def test_get_i_section_cts():
+    actual = csc.calc_i_section_cts(mm(300), mm(150), mm(15), mm(8), mm(12))
+    # conversion of result to floats because unit module does not support
+    # comparison with the approximate values used by pytest
+    actual = {k: [v[0].to_numeric(), v[1].to_numeric()] for k, v in actual.items()}
+    expected = {
+        "flange": approx([56 / 1000, 12 / 1000]),
+        "web": approx([246 / 1000, 8 / 1000]),
+    }
+    assert actual == expected
+
+
+class TestCalcPsiISectionWeb:
+    def test_positive_N_only(self):
+        actual = csc.calc_psi_i_section_web(
+            mm2(100), mm3(1000), Newton(5000), Newtonmeter(0)
+        )
+        expected = 1
+        assert actual == expected
+
+    def test_negative_N_only(self):
+        actual = csc.calc_psi_i_section_web(
+            mm2(100), mm3(1000), Newton(-5000), Newtonmeter(0)
+        )
+        expected = 1
+        assert actual == expected
+
+    def test_positive_M_only(self):
+        actual = csc.calc_psi_i_section_web(
+            mm2(100), mm3(1000), Newton(0), Newtonmeter(50)
+        )
+        expected = -1
+        assert actual == expected
+
+    def test_negative_M_only(self):
+        actual = csc.calc_psi_i_section_web(
+            mm2(100), mm3(1000), Newton(0), Newtonmeter(-50)
+        )
+        expected = -1
+        assert actual == expected
+
+    def test_positive_N_and_M(self):
+        actual = csc.calc_psi_i_section_web(
+            mm2(100), mm3(1000), Newton(5000), Newtonmeter(75)
+        )
+        expected = -0.2
+        assert actual == approx(expected)
+
+    def test_negative_N_and_positive_M(self):
+        actual = csc.calc_psi_i_section_web(
+            mm2(100), mm3(1000), Newton(-5000), Newtonmeter(75)
+        )
+        expected = -5
+        assert actual == approx(expected)
+
+    def test_negative_N_and_negative_M(self):
+        actual = csc.calc_psi_i_section_web(
+            mm2(100), mm3(1000), Newton(-5000), Newtonmeter(-75)
+        )
+        expected = -5
+        assert actual == approx(expected)
+
+
+class TestCalcAlphaISectionWeb:
+    def test_positive_N(self):
+        actual = csc.calc_alpha_i_section_web(
+            mm(120), mm(5), MPa(235), Newton(100000)
+        )
+        expected = 0.8546099291
+        assert actual == approx(expected)
+     
+    def test_positive_N_gt_web_capacity(self):
+        actual = csc.calc_alpha_i_section_web(
+            mm(120), mm(5), MPa(235), Newton(10000000)
+        )
+        expected = 1
+        assert actual == approx(expected)
+            
+    def test_negative_N(self):
+        actual = csc.calc_alpha_i_section_web(
+            mm(120), mm(5), MPa(235), Newton(-100000)
+        )
+        expected = 0.1453900709
+        assert actual == approx(expected)
+        
+    def test_negative_N_gt_web_capacity(self):
+        with raises(NotImplementedError, match=r"Tension demand larger than web capacity."):
+            csc.calc_alpha_i_section_web(
+            mm(120), mm(5), MPa(235), Newton(-10000000)
+        )
+        

@@ -2,7 +2,7 @@
 STEEL PROFILE CLASSES
 """
 import os
-from typing import Any, Dict
+from typing import Any, Dict, List, Type
 
 from dataclasses import dataclass, field
 import pandas as pd
@@ -127,7 +127,7 @@ _SECTION_DATA = {
 }
 
 # used to link the variable names in the csv data to variable names in code
-_PROPERTY_NAME_MAP: Dict[str, Dict[str, str | float]] = { # TODO change any to abstractunit
+_PROPERTY_NAME_MAP: Dict[str, Dict[str, Type[float] | Type[str] | str]] = { # TODO change float to abstractunit
     "h": {"variable_name" : "height",
           "type": float},
     "b": {"variable_name" : "flange_width",
@@ -335,8 +335,8 @@ def _get_section(section_name: str) -> SteelSection:
     return section_class(section_name, **_map_property_names(section_props))
 
 
-def _map_property_names(section_props: Any) -> Dict[str, Any]:
-    return {_PROPERTY_NAME_MAP[k]["variable_name"]: _PROPERTY_NAME_MAP[k]["type"](v) for k, v in section_props.items()}
+def _map_property_names(section_props: Any) -> Dict[str, Any]: 
+    return {str(_PROPERTY_NAME_MAP[k]["variable_name"]): _PROPERTY_NAME_MAP[k]["type"](v) for k, v in section_props.items()} # type: ignore[operator]
 
 
 def get(section_name: str) -> SteelSection:
