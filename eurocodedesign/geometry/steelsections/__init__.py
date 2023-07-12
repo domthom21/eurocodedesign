@@ -353,7 +353,10 @@ def get_optimal(section_type: str, prop: str, val: float, min_max: str) -> Steel
     if not _is_valid_property(df, prop):
         raise ValueError(f"Invalid property: '{prop}'")
     
-    prop_key = _property_key(prop)
+    if section_type == "CHS":
+        prop_key = _property_key_chs(prop)
+    else:
+        prop_key = _property_key(prop)
     
     if min_max == "min":
         df_filtered = df[df[prop_key] >= val]
@@ -377,6 +380,13 @@ def _is_valid_property(df: pd.DataFrame, prop: str) -> bool:
     return False
     
     
-def _property_key(prop: str) -> str:
+def _property_key_chs(prop: str) -> str:
     temp_map = {v["variable_name"]: k for k, v in _PROPERTY_NAME_MAP.items()}
+    return temp_map[prop]
+    
+    
+def _property_key(prop: str) -> str:
+    bad_keys = ["Av", "I", "i", "Wel", "Wpl"]
+    temp_map = {v["variable_name"]: k for k, v in _PROPERTY_NAME_MAP.items() 
+                if k not in bad_keys}
     return temp_map[prop]

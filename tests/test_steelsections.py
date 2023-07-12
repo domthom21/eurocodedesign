@@ -83,6 +83,26 @@ def dummy_IPE240():
         "warping_modulus": 5354000,
     }
     return ss.RolledISection(**geometric_properties)
+
+@fixture
+def dummy_CHS114x3():
+    geometric_properties = {
+        "name": "CSH114.3x3",
+        "weight": 8.23,
+        "perimeter": 359,
+        "area": 1049,
+        "shear_area_z": 668,
+        "second_moment_of_area_y": 1625000,
+        "radius_of_gyration_y": 39.4,
+        "elastic_section_modulus_y": 28440,
+        "plastic_section_modulus_y": 37170,
+        "diameter": 114.3,
+        "wall_thickness": 3,
+        "torsion_constant": 3251000,
+        "torsion_modulus": 56880,
+        "manufacture_method": "cold",
+    }
+    return ss.CircularHollowSection(**geometric_properties)
     
 @fixture
 def ipe_dataframe():
@@ -249,6 +269,16 @@ class TestGetOptimal:
         expected = dummy_IPE240
         assert actual == expected
         
+    def test_ipe_Wpl_min(self, dummy_IPE270):
+        actual = ss.get_optimal("IPE", "plastic_section_modulus_y", 428000, "min")
+        expected = dummy_IPE270
+        assert actual == expected
+        
+    def test_chs_Wpl_min(self, dummy_CHS114x3):
+        actual = ss.get_optimal("CHS", "plastic_section_modulus_y", 37100, "min")
+        expected = dummy_CHS114x3
+        assert actual == expected
+    
         
 class TestIsValidPropety:
     def test_invalid_property(self, ipe_dataframe):
