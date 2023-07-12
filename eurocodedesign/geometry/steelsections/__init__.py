@@ -342,3 +342,51 @@ def _map_property_names(section_props: Any) -> Dict[str, Any]:
 def get(section_name: str) -> SteelSection:
     return _get_section(section_name)
 
+
+def get_optimal(section_type: str, prop: str, val: float, min_max: str) -> SteelSection:
+    
+    if not _is_valid_type(section_type):
+        raise ValueError(f"Invalid section type: '{section_type}'")
+    
+    df = _import_section_database(section_type)
+    
+    if not _is_valid_property(df, prop):
+        raise ValueError(f"Invalid property: '{prop}'")
+    
+    if section_type == "CHS":
+        prop_key = _property_key_chs(prop)
+    else:
+        prop_key = _property_key(prop)
+    
+    if min_max == "min":
+        df_filtered = df[df[prop_key] >= val]
+        idx_min = df_filtered[prop_key].idxmin()
+        return get(str(idx_min))
+        
+    elif min_max == "max":
+        df_filtered = df[df[prop_key] <= val]
+        idx_max = df_filtered[prop_key].idxmax()
+        return get(str(idx_max))
+            
+    else:
+        raise ValueError(f"Invalid min_max value: '{min_max}'")
+    
+
+def _is_valid_property(df: pd.DataFrame, prop: str) -> bool:
+    # map the keys from dataframe to allow comparison
+    props = [str(_PROPERTY_NAME_MAP[k]["variable_name"]) for k in df.columns]
+    if prop in props:
+        return True
+    return False
+    
+    
+def _property_key_chs(prop: str) -> str:
+    temp_map = {v["variable_name"]: k for k, v in _PROPERTY_NAME_MAP.items()}
+    return temp_map[prop]
+    
+    
+def _property_key(prop: str) -> str:
+    bad_keys = ["Av", "I", "i", "Wel", "Wpl"]
+    temp_map = {v["variable_name"]: k for k, v in _PROPERTY_NAME_MAP.items() 
+                if k not in bad_keys}
+    return temp_map[prop]

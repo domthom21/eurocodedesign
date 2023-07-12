@@ -3,13 +3,13 @@ tests for the module responsible for loading steel section geometry
 eurocodedesign.geometry.steelsection.manager
 """
 
-import pytest
+from pytest import fixture, raises
 import pandas as pd
 import eurocodedesign.geometry.steelsections as ss
 from unittest.mock import patch
 
 
-@pytest.fixture
+@fixture
 def section_dataframe():
     # set up test section database for the
     index = ["IPE100", "IPE240", "IPE270", "IPE400"]
@@ -18,7 +18,7 @@ def section_dataframe():
     return pd.DataFrame(data, columns=columns, index=index)
 
 
-@pytest.fixture
+@fixture
 def profile_series():
     index = ["A", "I", "Wel", "Wpl"]
     name = "IPE270"
@@ -26,7 +26,7 @@ def profile_series():
     return pd.Series(data, index=index, name=name)
 
 
-@pytest.fixture
+@fixture
 def dummy_IPE270():
     geometric_properties = {
         "name": "IPE270",
@@ -55,9 +55,57 @@ def dummy_IPE270():
     }
     return ss.RolledISection(**geometric_properties)
 
+@fixture
+def dummy_IPE240():
+    geometric_properties = {
+        "name": "IPE240",
+        "height": 240,
+        "flange_width": 120,
+        "web_thickness": 6.2,
+        "flange_thickness": 9.8,
+        "root_radius": 15,
+        "weight": 30.7,
+        "perimeter": 0.922,
+        "area": 3912,
+        "shear_area_z": 1914,
+        "shear_area_y": 2352,
+        "second_moment_of_area_y": 38920000,
+        "radius_of_gyration_y": 99.7,
+        "elastic_section_modulus_y": 324300,
+        "plastic_section_modulus_y": 366600,
+        "second_moment_of_area_z": 2836000,
+        "radius_of_gyration_z": 26.9,
+        "elastic_section_modulus_z": 47270,
+        "plastic_section_modulus_z": 73920,
+        "torsion_constant": 127400,
+        "torsion_modulus": 20550,
+        "warping_constant": 36680000000,
+        "warping_modulus": 5354000,
+    }
+    return ss.RolledISection(**geometric_properties)
 
-@pytest.fixture
-def IPE_dataframe():
+@fixture
+def dummy_CHS114x3():
+    geometric_properties = {
+        "name": "CSH114.3x3",
+        "weight": 8.23,
+        "perimeter": 359,
+        "area": 1049,
+        "shear_area_z": 668,
+        "second_moment_of_area_y": 1625000,
+        "radius_of_gyration_y": 39.4,
+        "elastic_section_modulus_y": 28440,
+        "plastic_section_modulus_y": 37170,
+        "diameter": 114.3,
+        "wall_thickness": 3,
+        "torsion_constant": 3251000,
+        "torsion_modulus": 56880,
+        "manufacture_method": "cold",
+    }
+    return ss.CircularHollowSection(**geometric_properties)
+    
+@fixture
+def ipe_dataframe():
     # set up test section database for the
     geometric_properties_IPE270 = [
         270,
@@ -164,19 +212,19 @@ def test_when_get_section_type_is_not_found():
 
 
 def test_load_section_props_input_not_string():
-    with pytest.raises(ValueError):
+    with raises(ValueError):
         ss._load_section_props(2)
 
 
 def test_load_section_props_input_is_wrong_type():
-    with pytest.raises(
+    with raises(
         ValueError, match="Invalid section type for section: 'XYZ281'"
     ):
         ss._load_section_props("XYZ281")
 
 
 def test_load_section_props_input_is_wrong_section():
-    with pytest.raises(
+    with raises(
         ValueError, match="Invalid section name: 'IPE281'"
     ):
         ss._load_section_props("IPE281")
@@ -193,6 +241,48 @@ def test_load_section_props_for_valid_section_name(
 
 
 @patch("eurocodedesign.geometry.steelsections._import_section_database")
-def test_get_section(section_data, IPE_dataframe, dummy_IPE270):
-    section_data.return_value = IPE_dataframe
+def test_get_section(section_data, ipe_dataframe, dummy_IPE270):
+    section_data.return_value = ipe_dataframe
     assert ss._get_section("IPE270") == dummy_IPE270
+    
+
+class TestGetOptimal:
+    def test_invalid_section_type(self, ipe_dataframe):
+        with raises(ValueError, match=r"Invalid section type: 'IPF'"):
+            ss.get_optimal("IPF", "area", 4400, "min")
+    
+    def test_invalid_property(self):
+        with raises(ValueError, match=r"Invalid property: 'areb'"):
+            ss.get_optimal("IPE", "areb", 4400, "min")
+    
+    def test_invalid_minmax(self):
+        with raises(ValueError, match=r"Invalid min_max value: 'mit'"):
+            ss.get_optimal("IPE", "area", 4400, "mit")
+            
+    def test_ipe_area_min(self, dummy_IPE270):
+        actual = ss.get_optimal("IPE", "area", 4400, "min")
+        expected = dummy_IPE270
+        assert actual == expected
+
+    def test_ipe_area_max(self, dummy_IPE240):
+        actual = ss.get_optimal("IPE", "area", 4400, "max")
+        expected = dummy_IPE240
+        assert actual == expected
+        
+    def test_ipe_Wpl_min(self, dummy_IPE270):
+        actual = ss.get_optimal("IPE", "plastic_section_modulus_y", 428000, "min")
+        expected = dummy_IPE270
+        assert actual == expected
+        
+    def test_chs_Wpl_min(self, dummy_CHS114x3):
+        actual = ss.get_optimal("CHS", "plastic_section_modulus_y", 37100, "min")
+        expected = dummy_CHS114x3
+        assert actual == expected
+    
+        
+class TestIsValidPropety:
+    def test_invalid_property(self, ipe_dataframe):
+        assert ss._is_valid_property(ipe_dataframe, "areb") == False
+        
+    def test_valid_property(self, ipe_dataframe):
+        assert ss._is_valid_property(ipe_dataframe, "area") == True
