@@ -202,7 +202,8 @@ class AbstractUnit(ABC):
     def __eq__(self, other: object) -> bool:
         if (not isinstance(other, AbstractUnit) or
                 self._physical_type != other._physical_type):
-            raise TypeError('Self type: ', type(self), 'Other type: ', type(other))
+            raise TypeError('Self type: ', type(self), 'Other type: ',
+                            type(other))
         return self._value == other._value
 
     def __ne__(self, other: object) -> bool:
@@ -363,6 +364,3 @@ MegaPascal = partial(Pascal, prefix=Prefix.mega)
 MPa = MegaPascal
 N_per_mm2 = MegaPascal
 GPa = GigaPascal
-
-
-
