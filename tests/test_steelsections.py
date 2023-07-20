@@ -286,7 +286,7 @@ class TestGetOptimal:
         expected = dummy_CHS114x3
         assert actual == expected
 
-git
+
 class TestIsValidPropety:
     def test_invalid_property(self, ipe_dataframe):
         assert ss._is_valid_property(ipe_dataframe, "areb") is False
