@@ -339,7 +339,7 @@ def _get_section(section_name: str) -> SteelSection:
 
 def _map_property_names(section_props: Any) -> Dict[str, Any]:
     return {str(_PROPERTY_NAME_MAP[k]["variable_name"]):
-                _PROPERTY_NAME_MAP[k]["type"](v) # type: ignore[operator]
+            _PROPERTY_NAME_MAP[k]["type"](v)  # type: ignore[operator]
             for k, v in section_props.items()}
 
 
