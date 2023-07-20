@@ -44,10 +44,10 @@ class BasicStructuralSteel():
     _thermal_coefficient: float = field(default=1.2e-7, kw_only=True)  # 1/K
     poissons_ratio: float = field(default=0.3, kw_only=True)
 
-    f_y_thin: Pascal = Pascal(0)
-    f_y_thick: Pascal = Pascal(0)
-    f_u_thin: Pascal = Pascal(0)
-    f_u_thick: Pascal = Pascal(0)
+    f_y_thin: Pascal = field(default_factory=lambda: Pascal(0), kw_only=True)
+    f_y_thick: Pascal = field(default_factory=lambda: Pascal(0), kw_only=True)
+    f_u_thin: Pascal = field(default_factory=lambda: Pascal(0), kw_only=True)
+    f_u_thick: Pascal = field(default_factory=lambda: Pascal(0), kw_only=True)
 
     @property
     def f_yk(self) -> Pascal:
