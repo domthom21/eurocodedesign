@@ -3,10 +3,12 @@ tests for the module responsible for loading steel section geometry
 eurocodedesign.geometry.steelsection.manager
 """
 
-from pytest import fixture, raises
-import pandas as pd
-import eurocodedesign.geometry.steelsections as ss
 from unittest.mock import patch
+
+import pandas as pd
+from pytest import fixture, raises
+
+import eurocodedesign.geometry.steelsections as ss
 
 
 @fixture
@@ -55,6 +57,7 @@ def dummy_IPE270():
     }
     return ss.RolledISection(**geometric_properties)
 
+
 @fixture
 def dummy_IPE240():
     geometric_properties = {
@@ -84,6 +87,7 @@ def dummy_IPE240():
     }
     return ss.RolledISection(**geometric_properties)
 
+
 @fixture
 def dummy_CHS114x3():
     geometric_properties = {
@@ -103,7 +107,8 @@ def dummy_CHS114x3():
         "manufacture_method": "cold",
     }
     return ss.CircularHollowSection(**geometric_properties)
-    
+
+
 @fixture
 def ipe_dataframe():
     # set up test section database for the
@@ -244,21 +249,21 @@ def test_load_section_props_for_valid_section_name(
 def test_get_section(section_data, ipe_dataframe, dummy_IPE270):
     section_data.return_value = ipe_dataframe
     assert ss._get_section("IPE270") == dummy_IPE270
-    
+
 
 class TestGetOptimal:
     def test_invalid_section_type(self, ipe_dataframe):
         with raises(ValueError, match=r"Invalid section type: 'IPF'"):
             ss.get_optimal("IPF", "area", 4400, "min")
-    
+
     def test_invalid_property(self):
         with raises(ValueError, match=r"Invalid property: 'areb'"):
             ss.get_optimal("IPE", "areb", 4400, "min")
-    
+
     def test_invalid_minmax(self):
         with raises(ValueError, match=r"Invalid min_max value: 'mit'"):
             ss.get_optimal("IPE", "area", 4400, "mit")
-            
+
     def test_ipe_area_min(self, dummy_IPE270):
         actual = ss.get_optimal("IPE", "area", 4400, "min")
         expected = dummy_IPE270
@@ -268,21 +273,23 @@ class TestGetOptimal:
         actual = ss.get_optimal("IPE", "area", 4400, "max")
         expected = dummy_IPE240
         assert actual == expected
-        
+
     def test_ipe_Wpl_min(self, dummy_IPE270):
-        actual = ss.get_optimal("IPE", "plastic_section_modulus_y", 428000, "min")
+        actual = ss.get_optimal("IPE", "plastic_section_modulus_y", 428000,
+                                "min")
         expected = dummy_IPE270
         assert actual == expected
-        
+
     def test_chs_Wpl_min(self, dummy_CHS114x3):
-        actual = ss.get_optimal("CHS", "plastic_section_modulus_y", 37100, "min")
+        actual = ss.get_optimal("CHS", "plastic_section_modulus_y", 37100,
+                                "min")
         expected = dummy_CHS114x3
         assert actual == expected
-    
-        
+
+
 class TestIsValidPropety:
     def test_invalid_property(self, ipe_dataframe):
-        assert ss._is_valid_property(ipe_dataframe, "areb") == False
-        
+        assert ss._is_valid_property(ipe_dataframe, "areb") is False
+
     def test_valid_property(self, ipe_dataframe):
-        assert ss._is_valid_property(ipe_dataframe, "area") == True
+        assert ss._is_valid_property(ipe_dataframe, "area") is True
