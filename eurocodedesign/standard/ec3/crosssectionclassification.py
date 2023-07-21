@@ -10,14 +10,10 @@
 
 """
 from math import sqrt
-from typing import Tuple, Callable, cast, Dict, List
+from typing import Dict, List
+
 from eurocodedesign.geometry.steelsections import (
-    SteelSection,
-    ISection,
     RolledISection,
-    CircularHollowSection,
-    SquareHollowSection,
-    RectangularHollowSection,
 )
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
 from eurocodedesign.units import (
@@ -25,13 +21,9 @@ from eurocodedesign.units import (
     Meter_2,
     Pascal,
     MPa,
-    N,
-    mm,
-    N_per_mm2,
     Meter,
     Newtonmeter,
     Meter_3,
-    Meter_4,
     mm,
     mm2,
     mm3,
@@ -53,41 +45,29 @@ def calc_epsilon(f_yk: Pascal) -> float:
 
 def calc_k_sigma(psi: float, comp_free_edge: bool = True) -> float:
     if comp_free_edge:
-        return 0.57 - 0.21 * psi + 0.07 * psi**2
+        return 0.57 - 0.21 * psi + 0.07 * psi ** 2
 
     if psi == 1:
         return 0.43
     if psi >= 0:
         return 0.578 / (psi + 0.34)
 
-    return 1.7 - 5 * psi + 17.1 * psi**2
+    return 1.7 - 5 * psi + 17.1 * psi ** 2
 
 
 def classify_dsup_element(
     c: Meter, t: Meter, f_yk: Pascal, alpha: float = 1.0, psi: float = 1.0
 ) -> int:
     slenderness = c / t
-
-    # if alpha != 1.0 and psi == 1.0:
-    #     raise ValueError(
-    #         "The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'."
-    #     )
-
-    # if alpha == 1.0 and psi != 1.0:
-    #     raise ValueError(
-    #         "The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'."
-    #     )
-
     ct_limits = ct_limits_dsup_elements(f_yk, alpha, psi)
-
     for section_class, slenderness_limit in reversed(list(ct_limits.items())):
         if not slenderness <= slenderness_limit:
             return section_class + 1
-
     return 1
 
 
-def ct_limits_dsup_elements(f_yk: Pascal, alpha: float, psi: float) -> Dict[int, float]:
+def ct_limits_dsup_elements(f_yk: Pascal, alpha: float, psi: float) -> Dict[
+        int, float]:
     ct_limits = {
         1: ct_limit_dsup_element_class_1(f_yk, alpha),
         2: ct_limit_dsup_element_class_2(f_yk, alpha),
@@ -129,23 +109,10 @@ def classify_ssup_element(
     comp_free_edge: bool = True,
 ) -> int:
     slenderness = c / t
-
-    # if alpha != 1.0 and psi == 1.0:
-    #     raise ValueError(
-    #         "The default 'psi' value does not correspond to the user defined value for 'alpha'. Specify a value for 'psi'."
-    #     )
-
-    # if alpha == 1.0 and psi != 1.0:
-    #     raise ValueError(
-    #         "The default 'alpha' value does not correspond to the user defined value for 'psi'. Specify a value for 'alpha'."
-    #     )
-
     ct_limits = ct_limits_ssup_elements(f_yk, alpha, psi, comp_free_edge)
-
     for section_class, slenderness_limit in reversed(list(ct_limits.items())):
         if not slenderness <= slenderness_limit:
             return section_class + 1
-
     return 1
 
 
@@ -195,11 +162,14 @@ def ct_limit_ssup_element_class_3(f_yk: Pascal, psi: float) -> float:
     return 21 * calc_epsilon(f_yk) * sqrt(calc_k_sigma(psi))
 
 
-def ct_limit_ssup_element_class_3_tension_free_edge(f_yk: Pascal, psi: float) -> float:
-    return 21 * calc_epsilon(f_yk) * sqrt(calc_k_sigma(psi, comp_free_edge=False))
+def ct_limit_ssup_element_class_3_tension_free_edge(f_yk: Pascal,
+                                                    psi: float) -> float:
+    return 21 * calc_epsilon(f_yk) * sqrt(
+        calc_k_sigma(psi, comp_free_edge=False))
 
 
-def classify_angle_cross_section(h: Meter, b: Meter, t: Meter, f_yk: Pascal) -> int:
+def classify_angle_cross_section(h: Meter, b: Meter, t: Meter,
+                                 f_yk: Pascal) -> int:
     slenderness = h / t
     slenderess_2 = (b + h) / (2 * t)
     eps = calc_epsilon(f_yk)
@@ -228,9 +198,9 @@ def classify_chs_cross_section(d: Meter, t: Meter, f_yk: Pascal) -> int:
 def ct_limits_chs_elements(f_yk: Pascal) -> Dict[int, float]:
     eps = calc_epsilon(f_yk)
     ct_limits = {
-        1: 50 * eps**2,
-        2: 70 * eps**2,
-        3: 90 * eps**2,
+        1: 50 * eps ** 2,
+        2: 70 * eps ** 2,
+        3: 90 * eps ** 2,
     }
     return ct_limits
 
@@ -242,10 +212,10 @@ def classify_rolled_i_section(
     M_Ed_y: Newtonmeter | None = None,
     M_Ed_z: Newtonmeter | None = None,
 ) -> int:
-    
     if isinstance(M_Ed_z, Newtonmeter):
         raise NotImplementedError(
-            "Cross-section classification for minor axis bending is not supported"
+            "Cross-section classification for"
+            " minor axis bending is not supported"
         )
 
     ct_vals = calc_i_section_cts(
@@ -254,7 +224,7 @@ def classify_rolled_i_section(
         mm(section.root_radius),
         mm(section.web_thickness),
         mm(section.flange_thickness),
-    )  # "Meter" required because units are not yet implemented for the sections.
+    )  # "Meter" required because units are not yet implemented for sections.
 
     if not isinstance(N_Ed, Newton) and not isinstance(M_Ed_y, Newtonmeter):
         alpha_web: float = 1.0
@@ -272,23 +242,29 @@ def classify_rolled_i_section(
         )
 
     elif isinstance(N_Ed, Newton) and not isinstance(M_Ed_y, Newtonmeter):
-        alpha_web = calc_alpha_i_section_web(ct_vals["web"][0], ct_vals["web"][1], material.f_yk, N_Ed)
+        alpha_web = calc_alpha_i_section_web(ct_vals["web"][0],
+                                             ct_vals["web"][1], material.f_yk,
+                                             N_Ed)
         psi_web = calc_psi_i_section_web(
-            mm2(section.area), mm3(section.elastic_section_modulus_y), N_Ed, Newtonmeter(0)
-            )
-    
+            mm2(section.area), mm3(section.elastic_section_modulus_y), N_Ed,
+            Newtonmeter(0)
+        )
+
     elif isinstance(N_Ed, Newton) and isinstance(M_Ed_y, Newtonmeter):
-        alpha_web = calc_alpha_i_section_web(ct_vals["web"][0], ct_vals["web"][1], material.f_yk, N_Ed)
+        alpha_web = calc_alpha_i_section_web(ct_vals["web"][0],
+                                             ct_vals["web"][1], material.f_yk,
+                                             N_Ed)
         psi_web = calc_psi_i_section_web(
-                mm2(section.area), mm3(section.elastic_section_modulus_y), N_Ed, M_Ed_y
-                )
-            
+            mm2(section.area), mm3(section.elastic_section_modulus_y), N_Ed,
+            M_Ed_y
+        )
 
     web_class = classify_dsup_element(
         ct_vals["web"][0], ct_vals["web"][1], material.f_yk, alpha_web, psi_web
     )
 
-    flange_class = classify_ssup_element(ct_vals["flange"][0], ct_vals["flange"][1], material.f_yk)
+    flange_class = classify_ssup_element(ct_vals["flange"][0],
+                                         ct_vals["flange"][1], material.f_yk)
     cross_section_class = max(flange_class, web_class)
 
     return cross_section_class
@@ -301,20 +277,23 @@ def calc_i_section_cts(
     t_w: Meter,
     t_f: Meter,
 ) -> Dict[str, List[Meter]]:
-    
     # .to_numeric required to avoid assignment errors from mypy and Unit Module
-    c_flange = Meter(b.to_numeric() - (2 * weld_or_radius.to_numeric() + t_w.to_numeric()) / 2)
-    c_web = Meter(h.to_numeric() - 2 * (t_f.to_numeric() + weld_or_radius.to_numeric()))
+    c_flange = Meter(b.to_numeric() - (
+        2 * weld_or_radius.to_numeric() + t_w.to_numeric()) / 2)
+    c_web = Meter(
+        h.to_numeric() - 2 * (t_f.to_numeric() + weld_or_radius.to_numeric()))
 
     return {"flange": [c_flange, t_f], "web": [c_web, t_w]}
 
 
-def calc_alpha_i_section_web(c: Meter, t: Meter, f_yk: Pascal, N_Ed: Newton) -> float:
+def calc_alpha_i_section_web(c: Meter, t: Meter, f_yk: Pascal,
+                             N_Ed: Newton) -> float:
     e = abs(N_Ed.to_numeric()) / (t.to_numeric() * f_yk.to_numeric())
     if N_Ed.to_numeric() < 0.0:
         alpha = 0.5 - e / (2 * c.to_numeric())
         if alpha <= 0.0:
-            raise NotImplementedError("Tension demand larger than web capacity.")
+            raise NotImplementedError(
+                "Tension demand larger than web capacity.")
     else:
         alpha = min(0.5 + e / (2 * c.to_numeric()), 1.0)
 

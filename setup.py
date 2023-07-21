@@ -11,7 +11,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = ['pandas>=2.0', 'numpy', 'typing_extensions', ]
 
-test_requirements = ['pytest>=3', 'typing_extensions', ]
+test_requirements = ['pytest>=3', 'typing_extensions', 'mypy' ]
 
 setup(
     author="Dominik Thomas",
