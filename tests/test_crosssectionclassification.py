@@ -4,7 +4,7 @@
 from pytest import fixture, raises, approx
 from eurocodedesign.units import MPa, mm, mm2, mm3, Nm, Newton, \
     Newtonmeter
-import eurocodedesign.standard.ec3.crosssectionclassification as csc
+import eurocodedesign.standard.ec3.crosssection.classification as csc
 import eurocodedesign.geometry.steelsections as sec
 import eurocodedesign.materials.structuralsteel as stl
 
