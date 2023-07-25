@@ -18,8 +18,9 @@ from collections import deque
 from functools import wraps
 from types import TracebackType
 import sys
+from typing import Callable, TypeVar, ParamSpec
 if sys.version_info >= (3, 11):
-    from typing import Self, Callable, TypeVar, ParamSpec
+    from typing import Self
 else:
     from typing_extensions import Self
 
