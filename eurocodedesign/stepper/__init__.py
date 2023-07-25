@@ -22,13 +22,16 @@ if sys.version_info >= (3, 11):
 else:
     from typing_extensions import Self
 
+from eurocodedesign.config import config
+
 
 class Stepper:
     """
     Thread-safe context manager for collection of calculation steps
     """
 
-    def __init__(self) -> None:
+    def __init__(self, output: bool) -> None:
+        self.output: bool = output
         self._steps: deque[str] = deque()
 
     def __str__(self) -> str:
@@ -57,6 +60,8 @@ class Stepper:
         return self
 
     def _flush(self) -> None:
+        if not self.output:
+            return
         string = str(self)
         if string:
             print(self)
@@ -72,11 +77,13 @@ class Stepper:
         self._flush()
 
 
-def create() -> Stepper:
+def create(output: bool | None = None) -> Stepper:
     """
     Factory method to create a new stepper object
 
     Returns: New Stepper object
 
     """
-    return Stepper()
+    if output is not None:
+        return Stepper(output)
+    return Stepper(config['stepper']['output'])
