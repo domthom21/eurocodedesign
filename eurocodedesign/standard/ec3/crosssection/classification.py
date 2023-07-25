@@ -279,8 +279,8 @@ def calc_i_section_cts(
     t_f: Meter,
 ) -> Dict[str, List[Meter]]:
     # .to_numeric required to avoid assignment errors from mypy and Unit Module
-    c_flange = Meter(b.to_numeric() - (
-        2 * weld_or_radius.to_numeric() + t_w.to_numeric()) / 2)
+    c_flange = Meter((b.to_numeric() - (
+        2 * weld_or_radius.to_numeric() + t_w.to_numeric())) / 2)
     c_web = Meter(
         h.to_numeric() - 2 * (t_f.to_numeric() + weld_or_radius.to_numeric()))
 
