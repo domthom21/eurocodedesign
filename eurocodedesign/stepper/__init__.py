@@ -104,6 +104,6 @@ def inject_stepper(func: Callable[_P, _T]) -> Callable[_P, _T]:
     @wraps(func)
     def _wrapper(*args: _P.args, **kwds: _P.kwargs) -> _T:
         if 'stepper' not in kwds:
-            kwds['stepper']: Stepper = create()
+            kwds['stepper'] = create()
         return func(*args, **kwds)
     return _wrapper
