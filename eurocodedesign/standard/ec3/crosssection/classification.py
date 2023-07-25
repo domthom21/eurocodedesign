@@ -7,6 +7,7 @@
 # todo - different epsilon value for QK4 using sigma_com (§5.5.2(9)/(10))
 # todo - QK3 web and QK1/2 flanges - effective web following §6.2.2.4
 # todo - implement for SHS/RHS, Welded I-Sections (sym. and asym.)
+# todo - add examples
 
 """
 from math import sqrt
