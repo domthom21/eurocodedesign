@@ -91,7 +91,7 @@ def dummy_IPE240():
 @fixture
 def dummy_CHS114x3():
     geometric_properties = {
-        "name": "CSH114.3x3",
+        "name": "CHS114.3x3",
         "m": 8.23,
         "P": 0.359,
         "A": 1049,
@@ -112,6 +112,35 @@ def dummy_CHS114x3():
         "manufacture": "cold",
     }
     return ss.CircularHollowSection(**geometric_properties)
+
+
+@fixture
+def dummy_L100x10():
+    geometric_properties = {
+        "name": "L100x10",
+        "h": 100,
+        "b": 100,
+        "t": 10,
+        "A": 1920,
+        "m": 15,
+        "r_1": 12,
+        "r_2": 6,
+        "c_y": 28.2,
+        "c_z": 28.2,
+        "I_y": 1770000,
+        "I_z": 1770000,
+        "I_u": 2800000,
+        "I_v": 730000,
+        "i_y": 30.4,
+        "i_z": 30.4,
+        "i_u": 38.3,
+        "i_v": 19.5,
+        "W_ely": 24600,
+        "W_elz": 24600,
+        "I_T": 69700,
+        "tan_alpha": 1.0,
+    }
+    return ss.LSection(**geometric_properties)
 
 
 @fixture
@@ -238,6 +267,11 @@ def test_load_section_props_input_is_wrong_section():
         ValueError, match="Invalid section name: 'IPE281'"
     ):
         ss._load_section_props("IPE281")
+
+
+def test_load_Lsection(dummy_L100x10):
+    actual = ss.get("L100x10")
+    assert actual == dummy_L100x10
 
 
 @patch("eurocodedesign.geometry.steelsections.import_section_database")
