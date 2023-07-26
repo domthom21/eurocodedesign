@@ -73,13 +73,13 @@ class CircularHollowSection(HollowSection):
     W_T: float = field(kw_only=True)
     manufacture: str = field(kw_only=True)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "A_v", self.A_vz)
         object.__setattr__(self, "I", self.I_y)
         object.__setattr__(self, "i", self.i_y)
         object.__setattr__(self, "W_el", self.W_ely)
         object.__setattr__(self, "W_pl", self.W_ply)
-        
+
 
 @dataclass(frozen=True)
 class RectangularHollowSection(HollowSection):
@@ -95,7 +95,7 @@ class RectangularHollowSection(HollowSection):
 
 @dataclass(frozen=True)
 class SquareHollowSection(RectangularHollowSection):
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         object.__setattr__(self, "A_v", self.A_vz)
         object.__setattr__(self, "I", self.I_y)
         object.__setattr__(self, "i", self.i_y)
@@ -164,8 +164,8 @@ _PROPERTY_TYPE_MAP: Dict[str, Type[float] | Type[str]] = {
     "r_i": float,
     "manufacture": str,
     "A_v": float,  # for CHS
-    "I": float,  # for CHS 
-    "i": float,  # for CHS 
+    "I": float,  # for CHS
+    "i": float,  # for CHS
     "W_el": float,  # for CHS
     "W_pl": float,  # for CHS
     "D": float,  # for CHS
@@ -313,8 +313,7 @@ def _get_section(section_name: str) -> SteelSection:
 
 
 def _map_property_names(section_props: Any) -> Dict[str, Any]:
-    return {str(k): _PROPERTY_TYPE_MAP[k](v)  # type: ignore[operator]
-            for k, v in section_props.items()}
+    return {str(k): _PROPERTY_TYPE_MAP[k](v) for k, v in section_props.items()}
 
 
 def get(section_name: str) -> SteelSection:
@@ -330,11 +329,6 @@ def get_optimal(section_type: str, prop: str, val: float,
 
     if not _is_valid_property(df, prop):
         raise ValueError(f"Invalid property: '{prop}'")
-
-    # if section_type == "CHS":
-    #     prop_key = _property_key_chs(prop)
-    # else:
-    #     prop_key = _property_key(prop)
 
     if min_max == "min":
         df_filtered = df[df[prop] >= val]
@@ -355,15 +349,3 @@ def _is_valid_property(df: pd.DataFrame, prop: str) -> bool:
     if prop in df.columns:
         return True
     return False
-
-
-# def _property_key_chs(prop: str) -> str:
-#     temp_map = {v["variable_name"]: k for k, v in _PROPERTY_TYPE_MAP.items()}
-#     return temp_map[prop]
-
-
-# def _property_key(prop: str) -> str:
-#     bad_keys = ["Av", "I", "i", "Wel", "Wpl"]
-#     temp_map = {v["variable_name"]: k for k, v in _PROPERTY_TYPE_MAP.items()
-#                 if k not in bad_keys}
-#     return temp_map[prop]
