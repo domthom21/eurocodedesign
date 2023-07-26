@@ -32,28 +32,28 @@ def profile_series():
 def dummy_IPE270():
     geometric_properties = {
         "name": "IPE270",
-        "height": 270,
-        "flange_width": 135,
-        "web_thickness": 6.6,
-        "flange_thickness": 10.2,
-        "root_radius": 15,
-        "weight": 36.1,
-        "perimeter": 1.041,
-        "area": 4595,
-        "shear_area_z": 2214,
-        "shear_area_y": 2754,
-        "second_moment_of_area_y": 57900000,
-        "radius_of_gyration_y": 112.3,
-        "elastic_section_modulus_y": 428900,
-        "plastic_section_modulus_y": 484000,
-        "second_moment_of_area_z": 4199000,
-        "radius_of_gyration_z": 30.2,
-        "elastic_section_modulus_z": 62200,
-        "plastic_section_modulus_z": 96950,
-        "torsion_constant": 157100,
-        "torsion_modulus": 23800,
-        "warping_constant": 69469000000,
-        "warping_modulus": 7974000,
+        "h": 270,
+        "b": 135,
+        "t_w": 6.6,
+        "t_f": 10.2,
+        "r": 15,
+        "m": 36.1,
+        "P": 1.041,
+        "A": 4595,
+        "A_vz": 2214,
+        "A_vy": 2754,
+        "I_y": 57900000,
+        "i_y": 112.3,
+        "W_ely": 428900,
+        "W_ply": 484000,
+        "I_z": 4199000,
+        "i_z": 30.2,
+        "W_elz": 62200,
+        "W_plz": 96950,
+        "I_T": 157100,
+        "W_T": 23800,
+        "I_w": 69469000000,
+        "W_w": 7974000,
     }
     return ss.RolledISection(**geometric_properties)
 
@@ -62,28 +62,28 @@ def dummy_IPE270():
 def dummy_IPE240():
     geometric_properties = {
         "name": "IPE240",
-        "height": 240,
-        "flange_width": 120,
-        "web_thickness": 6.2,
-        "flange_thickness": 9.8,
-        "root_radius": 15,
-        "weight": 30.7,
-        "perimeter": 0.922,
-        "area": 3912,
-        "shear_area_z": 1914,
-        "shear_area_y": 2352,
-        "second_moment_of_area_y": 38920000,
-        "radius_of_gyration_y": 99.7,
-        "elastic_section_modulus_y": 324300,
-        "plastic_section_modulus_y": 366600,
-        "second_moment_of_area_z": 2836000,
-        "radius_of_gyration_z": 26.9,
-        "elastic_section_modulus_z": 47270,
-        "plastic_section_modulus_z": 73920,
-        "torsion_constant": 127400,
-        "torsion_modulus": 20550,
-        "warping_constant": 36680000000,
-        "warping_modulus": 5354000,
+        "h": 240,
+        "b": 120,
+        "t_w": 6.2,
+        "t_f": 9.8,
+        "r": 15,
+        "m": 30.7,
+        "P": 0.922,
+        "A": 3912,
+        "A_vz": 1914,
+        "A_vy": 2352,
+        "I_y": 38920000,
+        "i_y": 99.7,
+        "W_ely": 324300,
+        "W_ply": 366600,
+        "I_z": 2836000,
+        "i_z": 26.9,
+        "W_elz": 47270,
+        "W_plz": 73920,
+        "I_T": 127400,
+        "W_T": 20550,
+        "I_w": 36680000000,
+        "W_w": 5354000,
     }
     return ss.RolledISection(**geometric_properties)
 
@@ -92,19 +92,24 @@ def dummy_IPE240():
 def dummy_CHS114x3():
     geometric_properties = {
         "name": "CSH114.3x3",
-        "weight": 8.23,
-        "perimeter": 359,
-        "area": 1049,
-        "shear_area_z": 668,
-        "second_moment_of_area_y": 1625000,
-        "radius_of_gyration_y": 39.4,
-        "elastic_section_modulus_y": 28440,
-        "plastic_section_modulus_y": 37170,
-        "diameter": 114.3,
-        "wall_thickness": 3,
-        "torsion_constant": 3251000,
-        "torsion_modulus": 56880,
-        "manufacture_method": "cold",
+        "m": 8.23,
+        "P": 0.359,
+        "A": 1049,
+        "A_vz": 668,
+        "I_y": 1625000,
+        "i_y": 39.4,
+        "W_ely": 28440,
+        "W_ply": 37170,
+        "A_vy": 668,
+        "I_z": 1625000,
+        "i_z": 39.4,
+        "W_elz": 28440,
+        "W_plz": 37170,
+        "D": 114.3,
+        "t": 3,
+        "I_T": 3251000,
+        "W_T": 56880,
+        "manufacture": "cold",
     }
     return ss.CircularHollowSection(**geometric_properties)
 
@@ -163,26 +168,26 @@ def ipe_dataframe():
     columns = [
         "h",
         "b",
-        "tw",
-        "tf",
+        "t_w",
+        "t_f",
         "r",
         "m",
         "P",
         "A",
-        "Avz",
-        "Avy",
-        "Iy",
-        "iy",
-        "Wely",
-        "Wply",
-        "Iz",
-        "iz",
-        "Welz",
-        "Wplz",
-        "IT",
-        "WT",
-        "Iw",
-        "Ww",
+        "A_vz",
+        "A_vy",
+        "I_y",
+        "i_y",
+        "W_ely",
+        "W_ply",
+        "I_z",
+        "i_z",
+        "W_elz",
+        "W_plz",
+        "I_T",
+        "W_T",
+        "I_w",
+        "W_w",
     ]
     data = [geometric_properties_IPE100, geometric_properties_IPE270]
     return pd.DataFrame(data, columns=columns, index=["IPE100", "IPE270"])
@@ -235,7 +240,7 @@ def test_load_section_props_input_is_wrong_section():
         ss._load_section_props("IPE281")
 
 
-@patch("eurocodedesign.geometry.steelsections._import_section_database")
+@patch("eurocodedesign.geometry.steelsections.import_section_database")
 def test_load_section_props_for_valid_section_name(
     imported_df, section_dataframe, profile_series
 ):
@@ -245,7 +250,7 @@ def test_load_section_props_for_valid_section_name(
     assert all(actual == expected) is True
 
 
-@patch("eurocodedesign.geometry.steelsections._import_section_database")
+@patch("eurocodedesign.geometry.steelsections.import_section_database")
 def test_get_section(section_data, ipe_dataframe, dummy_IPE270):
     section_data.return_value = ipe_dataframe
     assert ss._get_section("IPE270") == dummy_IPE270
@@ -254,7 +259,7 @@ def test_get_section(section_data, ipe_dataframe, dummy_IPE270):
 class TestGetOptimal:
     def test_invalid_section_type(self, ipe_dataframe):
         with raises(ValueError, match=r"Invalid section type: 'IPF'"):
-            ss.get_optimal("IPF", "area", 4400, "min")
+            ss.get_optimal("IPF", "A", 4400, "min")
 
     def test_invalid_property(self):
         with raises(ValueError, match=r"Invalid property: 'areb'"):
@@ -262,26 +267,26 @@ class TestGetOptimal:
 
     def test_invalid_minmax(self):
         with raises(ValueError, match=r"Invalid min_max value: 'mit'"):
-            ss.get_optimal("IPE", "area", 4400, "mit")
+            ss.get_optimal("IPE", "A", 4400, "mit")
 
     def test_ipe_area_min(self, dummy_IPE270):
-        actual = ss.get_optimal("IPE", "area", 4400, "min")
+        actual = ss.get_optimal("IPE", "A", 4400, "min")
         expected = dummy_IPE270
         assert actual == expected
 
     def test_ipe_area_max(self, dummy_IPE240):
-        actual = ss.get_optimal("IPE", "area", 4400, "max")
+        actual = ss.get_optimal("IPE", "A", 4400, "max")
         expected = dummy_IPE240
         assert actual == expected
 
     def test_ipe_Wpl_min(self, dummy_IPE270):
-        actual = ss.get_optimal("IPE", "plastic_section_modulus_y", 428000,
+        actual = ss.get_optimal("IPE", "W_ply", 428000,
                                 "min")
         expected = dummy_IPE270
         assert actual == expected
 
     def test_chs_Wpl_min(self, dummy_CHS114x3):
-        actual = ss.get_optimal("CHS", "plastic_section_modulus_y", 37100,
+        actual = ss.get_optimal("CHS", "W_ply", 37100,
                                 "min")
         expected = dummy_CHS114x3
         assert actual == expected
@@ -292,4 +297,4 @@ class TestIsValidPropety:
         assert ss._is_valid_property(ipe_dataframe, "areb") is False
 
     def test_valid_property(self, ipe_dataframe):
-        assert ss._is_valid_property(ipe_dataframe, "area") is True
+        assert ss._is_valid_property(ipe_dataframe, "A") is True
