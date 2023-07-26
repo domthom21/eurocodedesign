@@ -15,22 +15,13 @@ from eurocodedesign.geometry.section import BasicSection
 class SteelSection(BasicSection):
     # properties common among all steel sections (incl. major axis bending)
     m: float = field(kw_only=True)
-    P: float = field(kw_only=True)
     A: float = field(kw_only=True)
-    A_vz: float = field(kw_only=True)
-    A_vy: float = field(kw_only=True)
     I_y: float = field(kw_only=True)
     i_y: float = field(kw_only=True)
     W_ely: float = field(kw_only=True)
-    W_ply: float = field(kw_only=True)
     I_z: float = field(kw_only=True)
     i_z: float = field(kw_only=True)
     W_elz: float = field(kw_only=True)
-    W_plz: float = field(kw_only=True)
-    # add functionality if required later
-    # ??? possible functionality could include calculation of axial, shear, and
-    # ??? bending moment strengths -- with a steel material class as input
-    pass
 
 
 @dataclass(frozen=True)
@@ -49,10 +40,31 @@ class ISection(SteelSection):
     b: float = field(kw_only=True)
     t_w: float = field(kw_only=True)
     t_f: float = field(kw_only=True)
+    A_vz: float = field(kw_only=True)
+    A_vy: float = field(kw_only=True)
+    W_ply: float = field(kw_only=True)
+    W_plz: float = field(kw_only=True)
     I_T: float = field(kw_only=True)
     W_T: float = field(kw_only=True)
     I_w: float = field(kw_only=True)
     W_w: float = field(kw_only=True)
+
+
+@dataclass(frozen=True)
+class LSection(RolledSection):
+    h: float = field(kw_only=True)
+    b: float = field(kw_only=True)
+    t: float = field(kw_only=True)
+    r_1: float = field(kw_only=True)
+    r_2: float = field(kw_only=True)
+    c_y: float = field(kw_only=True)
+    c_z: float = field(kw_only=True)
+    I_u: float = field(kw_only=True)
+    I_v: float = field(kw_only=True)
+    i_u: float = field(kw_only=True)
+    i_v: float = field(kw_only=True)
+    I_T: float = field(kw_only=True)
+    tan_alpha: float = field(kw_only=True)
 
 
 @dataclass(frozen=True)
@@ -63,12 +75,18 @@ class HollowSection(SteelSection):
 @dataclass(frozen=True)
 class RolledISection(RolledSection, ISection):
     r: float = field(kw_only=True)
+    P: float = field(kw_only=True)
 
 
 @dataclass(frozen=True)
 class CircularHollowSection(HollowSection):
     D: float = field(kw_only=True)
+    P: float = field(kw_only=True)
     t: float = field(kw_only=True)
+    A_vz: float = field(kw_only=True)
+    A_vy: float = field(kw_only=True)
+    W_ply: float = field(kw_only=True)
+    W_plz: float = field(kw_only=True)
     I_T: float = field(kw_only=True)
     W_T: float = field(kw_only=True)
     manufacture: str = field(kw_only=True)
@@ -86,8 +104,13 @@ class RectangularHollowSection(HollowSection):
     h: float = field(kw_only=True)
     b: float = field(kw_only=True)
     t: float = field(kw_only=True)
+    P: float = field(kw_only=True)
     r_o: float = field(kw_only=True)
     r_i: float = field(kw_only=True)
+    A_vz: float = field(kw_only=True)
+    A_vy: float = field(kw_only=True)
+    W_ply: float = field(kw_only=True)
+    W_plz: float = field(kw_only=True)
     I_T: float = field(kw_only=True)
     W_T: float = field(kw_only=True)
     manufacture: str = field(kw_only=True)
@@ -132,6 +155,8 @@ _SECTION_DATA = {
         "filename": "rhs_en10219_en10210_2006.csv",
         "section_class": RectangularHollowSection,
     },
+    "L": {"filename": "L_en10056_2017.csv",
+          "section_class": LSection}
 }
 
 # used to link the variable names in the csv data to variable names in code
@@ -169,6 +194,16 @@ _PROPERTY_TYPE_MAP: Dict[str, Type[float] | Type[str]] = {
     "W_el": float,  # for CHS
     "W_pl": float,  # for CHS
     "D": float,  # for CHS
+    "r_1": float,  # for LSection
+    "r_2": float,  # for LSection
+    "c_y": float,  # for LSection
+    "c_z": float,  # for LSection
+    "I_u": float,  # for LSection
+    "I_v": float,  # for LSection
+    "i_u": float,  # for LSection
+    "i_v": float,  # for LSection
+    "I_T": float,  # for LSection
+    "tan_alpha": float,  # for LSection
 }
 
 """
