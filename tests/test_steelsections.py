@@ -240,7 +240,7 @@ def test_load_section_props_input_is_wrong_section():
         ss._load_section_props("IPE281")
 
 
-@patch("eurocodedesign.geometry.steelsections._import_section_database")
+@patch("eurocodedesign.geometry.steelsections.import_section_database")
 def test_load_section_props_for_valid_section_name(
     imported_df, section_dataframe, profile_series
 ):
@@ -250,7 +250,7 @@ def test_load_section_props_for_valid_section_name(
     assert all(actual == expected) is True
 
 
-@patch("eurocodedesign.geometry.steelsections._import_section_database")
+@patch("eurocodedesign.geometry.steelsections.import_section_database")
 def test_get_section(section_data, ipe_dataframe, dummy_IPE270):
     section_data.return_value = ipe_dataframe
     assert ss._get_section("IPE270") == dummy_IPE270

@@ -200,7 +200,7 @@ def _is_valid_type(section_name: str) -> bool:
     return False
 
 
-def _import_section_database(section_type: str) -> pd.DataFrame:
+def import_section_database(section_type: str) -> pd.DataFrame:
     """imports the data for the chosen section type as a pandas dataframe
 
     Assumes that the section type exists in the _SECTION_DATA constant
@@ -283,7 +283,7 @@ def _load_section_props(section_name: str) -> Any:
         section_type = _get_section_type(section_name)
         if not section_type:
             raise ValueError
-        section_db = _import_section_database(section_type)
+        section_db = import_section_database(section_type)
         if _is_valid_section(section_name, section_db):
             return section_db.loc[section_name]
         raise ValueError(f"Invalid section name: '{section_name}'")
@@ -326,7 +326,7 @@ def get_optimal(section_type: str, prop: str, val: float,
     if not _is_valid_type(section_type):
         raise ValueError(f"Invalid section type: '{section_type}'")
 
-    df = _import_section_database(section_type)
+    df = import_section_database(section_type)
 
     if not _is_valid_property(df, prop):
         raise ValueError(f"Invalid property: '{prop}'")
