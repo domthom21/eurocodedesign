@@ -15,8 +15,10 @@ Examples
     Add step
 """
 from collections import deque
+from functools import wraps
 from types import TracebackType
 import sys
+from typing import Callable, TypeVar, ParamSpec
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
@@ -87,3 +89,21 @@ def create(output: bool | None = None) -> Stepper:
     if output is not None:
         return Stepper(output)
     return Stepper(config['stepper']['output'])
+
+
+_P = ParamSpec('_P')
+_T = TypeVar('_T')
+
+
+def inject_stepper(func: Callable[_P, _T]) -> Callable[_P, _T]:
+    """Decorator for automatic injection of a stepper object
+
+    Expects a function parameter "stepper" in func for injection.
+    Uses factory method stepper.create() without parameters.
+    """
+    @wraps(func)
+    def _wrapper(*args: _P.args, **kwds: _P.kwargs) -> _T:
+        if 'stepper' not in kwds:
+            kwds['stepper'] = create()
+        return func(*args, **kwds)
+    return _wrapper
