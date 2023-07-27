@@ -220,11 +220,11 @@ def classify_rolled_i_section(
         )
 
     ct_vals = calc_i_section_cts(
-        mm(section.height),
-        mm(section.flange_width),
-        mm(section.root_radius),
-        mm(section.web_thickness),
-        mm(section.flange_thickness),
+        mm(section.h),
+        mm(section.b),
+        mm(section.r),
+        mm(section.t_w),
+        mm(section.t_f),
     )  # "Meter" required because units are not yet implemented for sections.
 
     if not isinstance(N_Ed, Newton) and not isinstance(M_Ed_y, Newtonmeter):
@@ -236,8 +236,8 @@ def classify_rolled_i_section(
             ct_vals["web"][0], ct_vals["web"][1], material.f_yk, Newton(0)
         )
         psi_web = calc_psi_i_section_web(
-            mm2(section.area),
-            mm3(section.elastic_section_modulus_y),
+            mm2(section.A),
+            mm3(section.W_ely),
             Newton(0),
             M_Ed_y,
         )
@@ -247,7 +247,7 @@ def classify_rolled_i_section(
                                              ct_vals["web"][1], material.f_yk,
                                              N_Ed)
         psi_web = calc_psi_i_section_web(
-            mm2(section.area), mm3(section.elastic_section_modulus_y), N_Ed,
+            mm2(section.A), mm3(section.W_ely), N_Ed,
             Newtonmeter(0)
         )
 
@@ -256,7 +256,7 @@ def classify_rolled_i_section(
                                              ct_vals["web"][1], material.f_yk,
                                              N_Ed)
         psi_web = calc_psi_i_section_web(
-            mm2(section.area), mm3(section.elastic_section_modulus_y), N_Ed,
+            mm2(section.A), mm3(section.W_ely), N_Ed,
             M_Ed_y
         )
 

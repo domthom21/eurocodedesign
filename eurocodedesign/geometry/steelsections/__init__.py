@@ -14,18 +14,14 @@ from eurocodedesign.geometry.section import BasicSection
 @dataclass(frozen=True)
 class SteelSection(BasicSection):
     # properties common among all steel sections (incl. major axis bending)
-    weight: float = field(kw_only=True)
-    perimeter: float = field(kw_only=True)
-    area: float = field(kw_only=True)
-    shear_area_z: float = field(kw_only=True)
-    second_moment_of_area_y: float = field(kw_only=True)
-    radius_of_gyration_y: float = field(kw_only=True)
-    elastic_section_modulus_y: float = field(kw_only=True)
-    plastic_section_modulus_y: float = field(kw_only=True)
-    # add functionality if required later
-    # ??? possible functionality could include calculation of axial, shear, and
-    # ??? bending moment strengths -- with a steel material class as input
-    pass
+    m: float = field(kw_only=True)
+    A: float = field(kw_only=True)
+    I_y: float = field(kw_only=True)
+    i_y: float = field(kw_only=True)
+    W_ely: float = field(kw_only=True)
+    I_z: float = field(kw_only=True)
+    i_z: float = field(kw_only=True)
+    W_elz: float = field(kw_only=True)
 
 
 @dataclass(frozen=True)
@@ -40,19 +36,35 @@ class WeldedSection(SteelSection):
 
 @dataclass(frozen=True)
 class ISection(SteelSection):
-    height: float = field(kw_only=True)
-    flange_width: float = field(kw_only=True)
-    web_thickness: float = field(kw_only=True)
-    flange_thickness: float = field(kw_only=True)
-    shear_area_y: float = field(kw_only=True)
-    second_moment_of_area_z: float = field(kw_only=True)
-    radius_of_gyration_z: float = field(kw_only=True)
-    elastic_section_modulus_z: float = field(kw_only=True)
-    plastic_section_modulus_z: float = field(kw_only=True)
-    torsion_constant: float = field(kw_only=True)
-    torsion_modulus: float = field(kw_only=True)
-    warping_constant: float = field(kw_only=True)
-    warping_modulus: float = field(kw_only=True)
+    h: float = field(kw_only=True)
+    b: float = field(kw_only=True)
+    t_w: float = field(kw_only=True)
+    t_f: float = field(kw_only=True)
+    A_vz: float = field(kw_only=True)
+    A_vy: float = field(kw_only=True)
+    W_ply: float = field(kw_only=True)
+    W_plz: float = field(kw_only=True)
+    I_T: float = field(kw_only=True)
+    W_T: float = field(kw_only=True)
+    I_w: float = field(kw_only=True)
+    W_w: float = field(kw_only=True)
+
+
+@dataclass(frozen=True)
+class LSection(RolledSection):
+    h: float = field(kw_only=True)
+    b: float = field(kw_only=True)
+    t: float = field(kw_only=True)
+    r_1: float = field(kw_only=True)
+    r_2: float = field(kw_only=True)
+    c_y: float = field(kw_only=True)
+    c_z: float = field(kw_only=True)
+    I_u: float = field(kw_only=True)
+    I_v: float = field(kw_only=True)
+    i_u: float = field(kw_only=True)
+    i_v: float = field(kw_only=True)
+    I_T: float = field(kw_only=True)
+    tan_alpha: float = field(kw_only=True)
 
 
 @dataclass(frozen=True)
@@ -62,38 +74,56 @@ class HollowSection(SteelSection):
 
 @dataclass(frozen=True)
 class RolledISection(RolledSection, ISection):
-    root_radius: float = field(kw_only=True)
+    r: float = field(kw_only=True)
+    P: float = field(kw_only=True)
 
 
 @dataclass(frozen=True)
 class CircularHollowSection(HollowSection):
-    diameter: float = field(kw_only=True)
-    wall_thickness: float = field(kw_only=True)
-    torsion_constant: float = field(kw_only=True)
-    torsion_modulus: float = field(kw_only=True)
-    manufacture_method: str = field(kw_only=True)
+    D: float = field(kw_only=True)
+    P: float = field(kw_only=True)
+    t: float = field(kw_only=True)
+    A_vz: float = field(kw_only=True)
+    A_vy: float = field(kw_only=True)
+    W_ply: float = field(kw_only=True)
+    W_plz: float = field(kw_only=True)
+    I_T: float = field(kw_only=True)
+    W_T: float = field(kw_only=True)
+    manufacture: str = field(kw_only=True)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "A_v", self.A_vz)
+        object.__setattr__(self, "I", self.I_y)
+        object.__setattr__(self, "i", self.i_y)
+        object.__setattr__(self, "W_el", self.W_ely)
+        object.__setattr__(self, "W_pl", self.W_ply)
 
 
 @dataclass(frozen=True)
 class RectangularHollowSection(HollowSection):
-    height: float = field(kw_only=True)
-    width: float = field(kw_only=True)
-    wall_thickness: float = field(kw_only=True)
-    outer_corner_radius: float = field(kw_only=True)
-    inner_corner_radius: float = field(kw_only=True)
-    shear_area_y: float = field(kw_only=True)
-    second_moment_of_area_z: float = field(kw_only=True)
-    radius_of_gyration_z: float = field(kw_only=True)
-    elastic_section_modulus_z: float = field(kw_only=True)
-    plastic_section_modulus_z: float = field(kw_only=True)
-    torsion_constant: float = field(kw_only=True)
-    torsion_modulus: float = field(kw_only=True)
-    manufacture_method: str = field(kw_only=True)
+    h: float = field(kw_only=True)
+    b: float = field(kw_only=True)
+    t: float = field(kw_only=True)
+    P: float = field(kw_only=True)
+    r_o: float = field(kw_only=True)
+    r_i: float = field(kw_only=True)
+    A_vz: float = field(kw_only=True)
+    A_vy: float = field(kw_only=True)
+    W_ply: float = field(kw_only=True)
+    W_plz: float = field(kw_only=True)
+    I_T: float = field(kw_only=True)
+    W_T: float = field(kw_only=True)
+    manufacture: str = field(kw_only=True)
 
 
 @dataclass(frozen=True)
 class SquareHollowSection(RectangularHollowSection):
-    pass
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "A_v", self.A_vz)
+        object.__setattr__(self, "I", self.I_y)
+        object.__setattr__(self, "i", self.i_y)
+        object.__setattr__(self, "W_el", self.W_ely)
+        object.__setattr__(self, "W_pl", self.W_ply)
 
 
 """
@@ -125,75 +155,55 @@ _SECTION_DATA = {
         "filename": "rhs_en10219_en10210_2006.csv",
         "section_class": RectangularHollowSection,
     },
+    "L": {"filename": "L_en10056_2017.csv",
+          "section_class": LSection}
 }
 
 # used to link the variable names in the csv data to variable names in code
-_PROPERTY_NAME_MAP: Dict[str, Dict[str, Type[float] | Type[str] | str]] = {
+_PROPERTY_TYPE_MAP: Dict[str, Type[float] | Type[str]] = {
     # TODO change float to abstractunit
-    "h": {"variable_name": "height",
-          "type": float},
-    "b": {"variable_name": "flange_width",
-          "type": float},
-    "tw": {"variable_name": "web_thickness",
-           "type": float},
-    "tf": {"variable_name": "flange_thickness",
-           "type": float},
-    "r": {"variable_name": "root_radius",
-          "type": float},
-    "m": {"variable_name": "weight",
-          "type": float},
-    "P": {"variable_name": "perimeter",
-          "type": float},
-    "A": {"variable_name": "area",
-          "type": float},
-    "Avz": {"variable_name": "shear_area_z",
-            "type": float},
-    "Avy": {"variable_name": "shear_area_y",
-            "type": float},
-    "Iy": {"variable_name": "second_moment_of_area_y",
-           "type": float},
-    "iy": {"variable_name": "radius_of_gyration_y",
-           "type": float},
-    "Wely": {"variable_name": "elastic_section_modulus_y",
-             "type": float},
-    "Wply": {"variable_name": "plastic_section_modulus_y",
-             "type": float},
-    "Iz": {"variable_name": "second_moment_of_area_z",
-           "type": float},
-    "iz": {"variable_name": "radius_of_gyration_z",
-           "type": float},
-    "Welz": {"variable_name": "elastic_section_modulus_z",
-             "type": float},
-    "Wplz": {"variable_name": "plastic_section_modulus_z",
-             "type": float},
-    "IT": {"variable_name": "torsion_constant",
-           "type": float},
-    "WT": {"variable_name": "torsion_modulus",
-           "type": float},
-    "Iw": {"variable_name": "warping_constant",
-           "type": float},
-    "Ww": {"variable_name": "warping_modulus",
-           "type": float},
-    "t": {"variable_name": "wall_thickness",
-          "type": float},
-    "ro": {"variable_name": "outer_corner_radius",
-           "type": float},
-    "ri": {"variable_name": "inner_corner_radius",
-           "type": float},
-    "manufacture": {"variable_name": "manufacture_method",
-                    "type": str},
-    "Av": {"variable_name": "shear_area_z",
-           "type": float},  # for CHS and SHS sections
-    "I": {"variable_name": "second_moment_of_area_y",
-          "type": float},  # for CHS and SHS sections
-    "i": {"variable_name": "radius_of_gyration_y",
-          "type": float},  # for CHS and SHS sections
-    "Wel": {"variable_name": "elastic_section_modulus_y",
-            "type": float},  # for CHS and SHS sections
-    "Wpl": {"variable_name": "plastic_section_modulus_y",
-            "type": float},  # for CHS and SHS sections
-    "D": {"variable_name": "diameter",
-          "type": float},  # for CHS and SHS sections
+    "h": float,
+    "b": float,
+    "t_w": float,
+    "t_f": float,
+    "r": float,
+    "m": float,
+    "P": float,
+    "A": float,
+    "A_vz": float,
+    "A_vy": float,
+    "I_y": float,
+    "i_y": float,
+    "W_ely": float,
+    "W_ply": float,
+    "I_z": float,
+    "i_z": float,
+    "W_elz": float,
+    "W_plz": float,
+    "I_T": float,
+    "W_T": float,
+    "I_w": float,
+    "W_w": float,
+    "t": float,
+    "r_o": float,
+    "r_i": float,
+    "manufacture": str,
+    "A_v": float,  # for CHS
+    "I": float,  # for CHS
+    "i": float,  # for CHS
+    "W_el": float,  # for CHS
+    "W_pl": float,  # for CHS
+    "D": float,  # for CHS
+    "r_1": float,  # for LSection
+    "r_2": float,  # for LSection
+    "c_y": float,  # for LSection
+    "c_z": float,  # for LSection
+    "I_u": float,  # for LSection
+    "I_v": float,  # for LSection
+    "i_u": float,  # for LSection
+    "i_v": float,  # for LSection
+    "I_T": float,  # for LSection
+    "tan_alpha": float,  # for LSection
 }
 
 """
@@ -225,7 +235,7 @@ def _is_valid_type(section_name: str) -> bool:
     return False
 
 
-def _import_section_database(section_type: str) -> pd.DataFrame:
+def import_section_database(section_type: str) -> pd.DataFrame:
     """imports the data for the chosen section type as a pandas dataframe
 
     Assumes that the section type exists in the _SECTION_DATA constant
@@ -308,7 +318,7 @@ def _load_section_props(section_name: str) -> Any:
         section_type = _get_section_type(section_name)
         if not section_type:
             raise ValueError
-        section_db = _import_section_database(section_type)
+        section_db = import_section_database(section_type)
         if _is_valid_section(section_name, section_db):
             return section_db.loc[section_name]
         raise ValueError(f"Invalid section name: '{section_name}'")
@@ -338,9 +348,7 @@ def _get_section(section_name: str) -> SteelSection:
 
 
 def _map_property_names(section_props: Any) -> Dict[str, Any]:
-    return {str(_PROPERTY_NAME_MAP[k]["variable_name"]):
-            _PROPERTY_NAME_MAP[k]["type"](v)  # type: ignore[operator]
-            for k, v in section_props.items()}
+    return {str(k): _PROPERTY_TYPE_MAP[k](v) for k, v in section_props.items()}
 
 
 def get(section_name: str) -> SteelSection:
@@ -352,24 +360,19 @@ def get_optimal(section_type: str, prop: str, val: float,
     if not _is_valid_type(section_type):
         raise ValueError(f"Invalid section type: '{section_type}'")
 
-    df = _import_section_database(section_type)
+    df = import_section_database(section_type)
 
     if not _is_valid_property(df, prop):
         raise ValueError(f"Invalid property: '{prop}'")
 
-    if section_type == "CHS":
-        prop_key = _property_key_chs(prop)
-    else:
-        prop_key = _property_key(prop)
-
     if min_max == "min":
-        df_filtered = df[df[prop_key] >= val]
-        idx_min = df_filtered[prop_key].idxmin()
+        df_filtered = df[df[prop] >= val]
+        idx_min = df_filtered[prop].idxmin()
         return get(str(idx_min))
 
     elif min_max == "max":
-        df_filtered = df[df[prop_key] <= val]
-        idx_max = df_filtered[prop_key].idxmax()
+        df_filtered = df[df[prop] <= val]
+        idx_max = df_filtered[prop].idxmax()
         return get(str(idx_max))
 
     else:
@@ -378,19 +381,6 @@ def get_optimal(section_type: str, prop: str, val: float,
 
 def _is_valid_property(df: pd.DataFrame, prop: str) -> bool:
     # map the keys from dataframe to allow comparison
-    props = [str(_PROPERTY_NAME_MAP[k]["variable_name"]) for k in df.columns]
-    if prop in props:
+    if prop in df.columns:
         return True
     return False
-
-
-def _property_key_chs(prop: str) -> str:
-    temp_map = {v["variable_name"]: k for k, v in _PROPERTY_NAME_MAP.items()}
-    return temp_map[prop]
-
-
-def _property_key(prop: str) -> str:
-    bad_keys = ["Av", "I", "i", "Wel", "Wpl"]
-    temp_map = {v["variable_name"]: k for k, v in _PROPERTY_NAME_MAP.items()
-                if k not in bad_keys}
-    return temp_map[prop]
