@@ -1,5 +1,5 @@
 Welcome to eurocodedesign's documentation!
-======================================
+==========================================
 
 .. toctree::
    :maxdepth: 2
