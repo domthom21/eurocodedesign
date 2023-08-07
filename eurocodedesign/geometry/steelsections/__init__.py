@@ -309,7 +309,7 @@ def _load_section_props(section_name: str) -> Any:
     Returns:
         pd.Series: containing all the geometric data for the profile
     """
-    if not isinstance(section_name, str)
+    if not isinstance(section_name, str):
         raise ValueError("Provide the section name as a string e.g. 'IPE100'")
     else:
         if not _is_valid_type(section_name):
