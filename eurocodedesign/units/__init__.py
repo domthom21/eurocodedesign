@@ -98,14 +98,14 @@ class AbstractUnit(ABC):
         raise NotImplementedError
 
     def __add__(self, other: Self) -> Self:
-        if (type(self) != type(other) or
+        if (not isinstance(other, self) or
                 self._physical_type != other._physical_type):
             raise TypeError(f'Addition not allowed for'
                             f' type {type(self)} and {type(other)}')
         return type(self)(self._value + other._value)
 
     def __sub__(self, other: Self) -> Self:
-        if (type(self) != type(other) or
+        if (not isinstance(other, self) or
                 self._physical_type != other._physical_type):
             raise TypeError(f'Subtraction not allowed for '
                             f'type {type(self)} and {type(other)}')
