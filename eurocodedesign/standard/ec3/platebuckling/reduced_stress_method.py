@@ -3,8 +3,7 @@ from typing import Literal
 
 import numpy as np
 
-from eurocodedesign.core.typing import PascalSequence, FloatSequence, \
-    FloatTriple, Eta
+from eurocodedesign.core.typing import FloatSequence, FloatTriple, Eta
 from eurocodedesign.stepper import inject_stepper, Stepper
 from eurocodedesign.units import Pascal
 

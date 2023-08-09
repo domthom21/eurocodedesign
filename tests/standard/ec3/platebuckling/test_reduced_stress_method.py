@@ -1,3 +1,4 @@
+import pytest
 from pytest import approx
 from math import inf
 
@@ -35,11 +36,24 @@ def test_calc_alpha_cr():
 
 def test_calc_rho():
     bar_lambda_p = 0.994
+    with pytest.raises(TypeError) as excinfo:
+        rsm.calc_rho(method='interpolate',
+                     support=None,
+                     bar_lambda_p=bar_lambda_p,
+                     psi_x=0.5,
+                     psi_z=-3)
+        assert 'support must be an instance of Enum PlateSupport' \
+               in str(excinfo.value)
     assert rsm.calc_rho(method='interpolate',
                         support=PlateSupport.TWO_SIDE,
                         bar_lambda_p=bar_lambda_p,
                         psi_x=0.5,
                         psi_z=-3) == approx((0.811, 1.0, 1.0), 0.001)
+    assert rsm.calc_rho(method='smallest',
+                        support=PlateSupport.ONE_SIDE,
+                        bar_lambda_p=bar_lambda_p,
+                        psi_x=0.5,
+                        psi_z=-3) == approx((0.815, 0.815, 0.815), 0.001)
 
 
 def test_calc_eta():
