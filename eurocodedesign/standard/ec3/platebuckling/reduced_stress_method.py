@@ -86,9 +86,9 @@ def calc_alpha_ultk(f_y: Pascal,
     psi_tau_Ed: float = tau_Ed / f_y
 
     inv_alpha_ultk_sq: float = (psi_x_Ed ** 2
-                         + psi_z_Ed ** 2
-                         - psi_x_Ed * psi_z_Ed
-                         + 3 * psi_tau_Ed ** 2)
+                                + psi_z_Ed ** 2
+                                - psi_x_Ed * psi_z_Ed
+                                + 3 * psi_tau_Ed ** 2)
     alpha_ultk: float = 1.0 / np.sqrt(inv_alpha_ultk_sq)
     return alpha_ultk
 
@@ -115,13 +115,13 @@ def calc_alpha_cr(alpha_crx: float, alpha_crz: float, alpha_crtau: float,
     Returns:
         float: ` critical load factor `\\alpha_{cr}}`` for plate buckling
     """
-    inv_alpha_cr: float = ( (1 + psi_x) / (4 * alpha_crx)
-                    + (1 + psi_z) / (4 * alpha_crz)
-                    + np.sqrt(((1 + psi_x) / (4 * alpha_crx)
-                              + (1 + psi_z) / (4 * alpha_crz)) ** 2
-                              + (1 - psi_x) / (2 * alpha_crx ** 2)
-                              + (1 - psi_z) / (2 * alpha_crz ** 2)
-                              + 1.0 / ( alpha_crtau ** 2)))
+    inv_alpha_cr: float = ((1 + psi_x) / (4 * alpha_crx)
+                           + (1 + psi_z) / (4 * alpha_crz)
+                           + np.sqrt(((1 + psi_x) / (4 * alpha_crx)
+                                     + (1 + psi_z) / (4 * alpha_crz)) ** 2
+                                     + (1 - psi_x) / (2 * alpha_crx ** 2)
+                                     + (1 - psi_z) / (2 * alpha_crz ** 2)
+                                     + 1.0 / (alpha_crtau ** 2)))
     alpha_cr: float = 1.0 / inv_alpha_cr
     return alpha_cr
 
@@ -149,7 +149,7 @@ def _calc_rho(support: PlateSupport,
         support: PlateSupport.ONE_SIDE or PlateSupport.TWO_SIDE
         bar_lambda_p: relative slenderness ``\\bar{\\lambda}_p`` for
         plate buckling, see calc_bar_lambda_p
-        psi: stress ratio ``\psi``
+        psi: stress ratio ``\\psi``
 
     Returns:
         float: ``\\rho`` reduction factor
@@ -201,9 +201,9 @@ def calc_rho(method: ReductionMethod,
     Args:
         method: 'smallest' or 'interpolated'
         support: PlateSupport.ONE_SIDE or PlateSupport.TWO_SIDE
-        bar_lambda_p: plate slenderness ``\\bar{\lambda}_p``
-        psi_x: stress ratio ``\psi_x`` in x-direction
-        psi_z: stress ratio ``\psi_z`` in z-direction
+        bar_lambda_p: plate slenderness ``\\bar{\\lambda}_p``
+        psi_x: stress ratio ``\\psi_x`` in x-direction
+        psi_z: stress ratio ``\\psi_z`` in z-direction
 
     Returns:
         FloatTriple:  ``\\rho_x, \\rho_z, \\Chi_w``
@@ -218,23 +218,22 @@ def calc_rho(method: ReductionMethod,
     if method == 'interpolate':
         return rho_x, rho_z, chi_w
     if method == 'smallest':
-        min = np.min([rho_x, rho_z,
-                       chi_w])
+        min = np.min([rho_x, rho_z, chi_w])
         return (min,) * 3
     raise ValueError(f'Method {method} not supported.')
 
 
 def calc_eta(f_y: Pascal,
-           sigma_x_Ed: Pascal,
-           sigma_z_Ed: Pascal,
-           tau_Ed: Pascal,
-           rho_x: float,
-           rho_z: float,
-           chi_w: float) -> Eta:
+             sigma_x_Ed: Pascal,
+             sigma_z_Ed: Pascal,
+             tau_Ed: Pascal,
+             rho_x: float,
+             rho_z: float,
+             chi_w: float) -> Eta:
     """Calculates the load factor ``\\eta``
 
-    Calculates the load factor for plate buckling with the reduced stress method
-    according to EN 1995-1-5:2019-10 §10 (5)
+    Calculates the load factor for plate buckling with the reduced stress
+    method according to EN 1995-1-5:2019-10 §10 (5)
 
     Args:
         f_y: yield strength ``f_y``
