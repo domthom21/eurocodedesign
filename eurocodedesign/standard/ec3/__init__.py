@@ -1,6 +1,3 @@
-
-
-
 def gamma_M0() -> float:
     """
     Partial factor ``\\gamma_{M0}`` for buildings
