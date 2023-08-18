@@ -1,9 +1,10 @@
 from enum import Enum, auto
-from typing import Literal
+from typing import Literal, NoReturn
 
 import numpy as np
 
 from eurocodedesign.core.typing import FloatSequence, FloatTriple, Eta
+from eurocodedesign.standard.ec3 import gamma_M1
 from eurocodedesign.stepper import inject_stepper, Stepper
 from eurocodedesign.units import Pascal
 
@@ -30,14 +31,13 @@ def is_permitted(rho: float, alpha_ultk: float, stepper: Stepper) -> bool:
         bool: True if permitted, Otherwise False
 
     """
-    gamma_M1: float = 1.0  # TODO load from ec3 __init__.py
-    eta: float = rho * alpha_ultk / gamma_M1
+    eta: float = rho * alpha_ultk / gamma_M1()
     valid: bool = eta > 1.0
 
     valid_str: str = 'valid' if valid else 'not valid'
     stepper.step(f"Reduced stress method is {valid_str} for "
                  f"\\rho = {rho}, \\alpha_{{ult,k}} = {alpha_ultk},"
-                 f" \\gamma_{{M1}} = {gamma_M1}.")
+                 f" \\gamma_{{M1}} = {gamma_M1()}.")
     return valid
 
 
@@ -172,7 +172,7 @@ def _calc_rho(support: PlateSupport,
     return rho
 
 
-def _calc_chi_w():
+def _calc_chi_w() -> NoReturn:
     """Calculate the reduction factor``\\Chi_w`` for shear buckling
 
     Calculation according to EN 1993-1-5:2019-10 §5.3(1).
@@ -186,8 +186,8 @@ ReductionMethod = Literal['smallest', 'interpolate']
 def calc_rho(method: ReductionMethod,
              support: PlateSupport,
              bar_lambda_p: float,
-             psi_x: float | None = None,
-             psi_z: float | None = None) -> FloatTriple:
+             psi_x: float,
+             psi_z: float) -> FloatTriple:
     """Calculate reduction factors for the reduced stress method
 
     Returns reduction factor ``\\rho_x`` for plate buckling in x-direction
@@ -250,15 +250,14 @@ def calc_eta(f_y: Pascal,
     """
     # Interaction is already contained in this equation,
     # for this reason section 7 is not applied (see §10 (5)c) )
-    gamma_M1 = 1.0  # TODO load from EC3 __init__.py
-    V = rho_x * rho_z if (sigma_x_Ed > 0.0*Pascal() and
-                          sigma_z_Ed > 0.0*Pascal()) else 1.0
-    f_yd = f_y / gamma_M1
-    alpha_x = sigma_x_Ed / (rho_x * f_yd)
-    alpha_z = sigma_z_Ed / (rho_z * f_yd)
-    alpha_tau = tau_Ed / (chi_w * f_yd)
-    eta_1 = (alpha_x ** 2
-             + alpha_z ** 2
-             - V * alpha_x * alpha_z
-             + 3 * (alpha_tau ** 2))
+    V: float = rho_x * rho_z if (sigma_x_Ed > 0.0*Pascal() and
+                                 sigma_z_Ed > 0.0*Pascal()) else 1.0
+    f_yd: Pascal = f_y / gamma_M1()
+    alpha_x: float = sigma_x_Ed / (rho_x * f_yd)
+    alpha_z: float = sigma_z_Ed / (rho_z * f_yd)
+    alpha_tau: float = tau_Ed / (chi_w * f_yd)
+    eta_1: float = (alpha_x ** 2
+                    + alpha_z ** 2
+                    - V * alpha_x * alpha_z
+                    + 3 * (alpha_tau ** 2))
     return eta_1
