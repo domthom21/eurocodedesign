@@ -21,7 +21,7 @@ from abc import ABC
 from enum import Enum, unique, auto
 from functools import partial
 import sys
-from typing import TypeAlias, Type, Optional, overload
+from typing import TypeAlias, Type, Optional, overload, cast
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -111,7 +111,12 @@ class AbstractUnit(ABC):
                             f'type {type(self)} and {type(other)}')
         return type(self)(self._value - other._value)
 
-    def __mul__(self, other: object) -> AbstractUnit:
+    @overload
+    def __mul__(self: Self, other: float | int) -> Self: ...
+    @overload
+    def __mul__(self: Self, other: Self) -> AbstractUnit: ...
+
+    def __mul__(self: Self, other: float | int | Self) -> AbstractUnit:
         """
         Multiplication of a unit type with another unit
 
@@ -143,22 +148,31 @@ class AbstractUnit(ABC):
                             f" type {self_type} and {other_type}.")
         return new_type(self._value * other._value)
 
-    def __rmul__(self, other: object) -> AbstractUnit:
+    def __rmul__(self: Self, other: float | int) -> Self:
         return self * other
 
-    # todo extend overloads
-    @overload
-    def __truediv__(self, other: Meter) -> float: ...
-    @overload
-    def __truediv__(self, other: Meter_2) -> Pascal: ...
-    @overload
-    def __truediv__(self, other: Pascal) -> float: ...
-    @overload
-    def __truediv__(self, other: Meter_3) -> Pascal: ...
-    @overload
-    def __truediv__(self, other: object) -> AbstractUnit | float: ...
+    def __pow__(self: Self,
+                exponent: int,
+                modulo: None = None) -> AbstractUnit:
+        if not isinstance(exponent, int):
+            raise TypeError('Only integers as exponent allowed')
+        if modulo is not None:
+            raise NotImplementedError("Modular exponentiation not implemented "
+                                      "for AbstractUnit")
+        power: AbstractUnit = type(self)()
+        for i in range(exponent):
+            power = power * self
+        return power
 
-    def __truediv__(self, other: object) -> AbstractUnit | float:
+    @overload
+    def __truediv__(self: Self, other: float | int) -> Self: ...
+
+    @overload
+    def __truediv__(self: Self, other: Self) -> float:
+        ...
+
+    def __truediv__(self,
+                    other: float | int | AbstractUnit) -> AbstractUnit | float:
         if isinstance(other, (int, float)):
             return type(self)(self._value
                               / other
@@ -297,6 +311,9 @@ class Kilogram(AbstractUnit):
 class Newton(AbstractUnit):
     _physical_type = PhysicalType.FORCE
     _unit_str = "N"
+
+    def __truediv__(self, other: Meter_2) -> Pascal:  # type: ignore[override]
+        return cast(Pascal, AbstractUnit.__truediv__(self, other))
 
 
 class Pascal(AbstractUnit):
