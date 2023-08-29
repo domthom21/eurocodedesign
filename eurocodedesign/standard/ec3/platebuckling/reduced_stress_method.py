@@ -5,8 +5,6 @@ import numpy as np
 from eurocodedesign.core.typing import FloatTriple, Eta
 from eurocodedesign.standard.ec3 import gamma_M1
 from eurocodedesign.standard.ec3.platebuckling import PlateSupport
-from eurocodedesign.standard.ec3.platebuckling.effective_width_method import \
-    calc_rho
 from eurocodedesign.stepper import inject_stepper, Stepper
 from eurocodedesign.units import Pascal
 
