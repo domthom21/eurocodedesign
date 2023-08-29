@@ -138,6 +138,42 @@ def _calc_chi_w() -> NoReturn:
 
 ReductionMethod = Literal['smallest', 'interpolate']
 
+def _calc_rho(support: PlateSupport,
+             bar_lambda_p: float,
+             psi: float = 1.0) -> float:
+    r"""Calculates the reduction factor :math:`\\rho`
+
+    Calculation for longitudinal plate buckling and two side supported or one
+     side supported buckling plates without stiffeners.
+
+    Calculation according to EN 1993-1-5:2019-10 §4.4.
+
+    Args:
+        support: PlateSupport.ONE_SIDE or PlateSupport.TWO_SIDE
+        bar_lambda_p: relative slenderness :math:`\bar{\lambda}_p` for
+        plate buckling, see calc_bar_lambda_p
+        psi: stress ratio :math:`\psi`
+
+    Returns:
+        float: reduction factor :math:`\rho` for longitudinal plate buckling
+    """
+    if not isinstance(support, PlateSupport):
+        raise TypeError('support must be an instance of Enum PlateSupport')
+
+    if support == PlateSupport.ONE_SIDE:
+        min_bar_lambda_p = 0.748
+    if support == PlateSupport.TWO_SIDE:
+        min_bar_lambda_p = 0.5 + np.sqrt(0.085 - 0.055 * psi)
+    if bar_lambda_p <= min_bar_lambda_p:
+        rho = 1.0
+    else:  # bar_lambda_p > min_bar_lambda_p
+        if support == PlateSupport.ONE_SIDE:
+            rho = np.divide(bar_lambda_p - 0.188, bar_lambda_p ** 2)
+        elif support == PlateSupport.TWO_SIDE:
+            rho = np.divide(bar_lambda_p - 0.055 * (3 + psi),
+                            bar_lambda_p ** 2)
+        rho = 1.0 if rho > 1.0 else rho
+    return rho
 
 def calc_rho(method: ReductionMethod,
              support: PlateSupport,
@@ -164,9 +200,9 @@ def calc_rho(method: ReductionMethod,
         FloatTriple:  :math:`\rho_x, \rho_z, \chi_w`
 
     """
-    rho_x: float = calc_rho(support, bar_lambda_p, psi_x)
+    rho_x: float = _calc_rho(support, bar_lambda_p, psi_x)
     # Note for rho_z, §6 is neglected, instead 4.5.4(1) is used
-    rho_z: float = calc_rho(support, bar_lambda_p, psi_z)
+    rho_z: float = _calc_rho(support, bar_lambda_p, psi_z)
     # chi_w: float = _calc_chi_w() # Currently not supported
     chi_w: float = 1.0
 
