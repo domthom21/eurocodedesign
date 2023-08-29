@@ -73,7 +73,8 @@ def calc_alpha_ultk(f_y: Pascal,
 
     Args:
         f_y: yield strength :math:`f_y`
-        sigma_x_Ed: design value :math:`\sigma_{x,Ed}` of the longitudinal stress
+        sigma_x_Ed: design value :math:`\sigma_{x,Ed}` of the longitudinal
+         stress
         sigma_z_Ed: design value :math:`\sigma_{z,Ed}` of the transverse stress
         tau_Ed: design value :math:`\tau_{Ed}` of the shear stress
 
@@ -136,9 +137,10 @@ def _calc_chi_w() -> NoReturn:
 
 ReductionMethod = Literal['smallest', 'interpolate']
 
+
 def _calc_rho(support: PlateSupport,
-             bar_lambda_p: float,
-             psi: float = 1.0) -> float:
+              bar_lambda_p: float,
+              psi: float = 1.0) -> float:
     r"""Calculates the reduction factor :math:`\\rho`
 
     Calculation for longitudinal plate buckling and two side supported or one
@@ -172,6 +174,7 @@ def _calc_rho(support: PlateSupport,
                             bar_lambda_p ** 2)
         rho = 1.0 if rho > 1.0 else rho
     return rho
+
 
 def calc_rho(method: ReductionMethod,
              support: PlateSupport,
