@@ -28,6 +28,7 @@ Example Usage:
     shear_modulus = steel_material.G
     thermal_coefficient = steel_material.alpha
 """
+
 from dataclasses import dataclass, field
 from typing import Type
 

@@ -1,6 +1,7 @@
 """
 classes for sections of various materials
 """
+
 from abc import ABC
 from dataclasses import dataclass, field
 

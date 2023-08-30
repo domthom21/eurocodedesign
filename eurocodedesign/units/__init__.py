@@ -16,6 +16,7 @@ TypeError: Addition not allowed for type <class 'eurocodedesign.units.Newton'>
 >>> 100*cm2()
 100.0 cm²
 """
+
 from __future__ import annotations
 from abc import ABC
 from enum import Enum, unique, auto
