@@ -36,8 +36,8 @@ from eurocodedesign.units import Pascal, mm2, N
 
 @dataclass(frozen=True)
 class BasicStructuralSteel():
-    name: str
     thickness_le_40mm: bool = field(default=True)
+    name: str = field(default="")
     _elastic_modulus: Pascal = field(
         default_factory=lambda: 210_000 * N() / mm2(), kw_only=True)
     _shear_modulus: Pascal = field(
