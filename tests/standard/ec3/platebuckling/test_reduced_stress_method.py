@@ -3,9 +3,7 @@ from pytest import approx
 from math import inf
 
 from eurocodedesign.standard.ec3.platebuckling import \
-    reduced_stress_method as rsm
-from eurocodedesign.standard.ec3.platebuckling.reduced_stress_method import \
-    PlateSupport
+    reduced_stress_method as rsm, PlateSupport
 from eurocodedesign.units import MPa
 
 
