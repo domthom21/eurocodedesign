@@ -14,49 +14,49 @@ from eurocodedesign.units import Meter, Pascal, Newton, N, mm2, Meter_2, \
     Newtonmeter, Meter_3
 
 
-def calc_bar_lambda_p(f_y: Pascal, sigma_crp: Pascal):
-    """
+# def calc_bar_lambda_p(f_y: Pascal, sigma_crp: Pascal) -> float:
+#     r"""Calculate modified slenderness for plate buckling
+#
+#     Calculation according to EN 1993-1-5:2010-12 §4.4(2)
+#
+#     Args:
+#         f_y: yield strength :math:`f_y`
+#         sigma_crp: critical stress :math:`\sigma_{cr,p}` for plate buckling
+#
+#     Returns: Relative slenderness :math:`\bar{\lambda}_p` for plate buckling
+#
+#     """
+#     bar_lambda_p = np.sqrt(f_y / sigma_crp)
+#     return bar_lambda_p
 
-    Args:
-        f_y: yield strength :math:`f_y`
-        sigma_crp: critical stress :math:`\sigma_{cr,p}` for plate buckling
-
-    Returns: Relative slenderness :math:`\\bar{\lambda}_p` for plate buckling
-
-    """
-    bar_lambda_p = np.sqrt(f_y / sigma_crp)
-    return bar_lambda_p
-
-
-# bar b according to EN 1993-1-1 Tab. 5.2
 
 def calc_bar_lambda_p(bar_b: Meter,
                       t: Meter,
                       epsilon: float,
                       k_sigmap: float) -> float:
-    """
+    r"""Calculate modified slenderness for plate buckling
 
     Calculation according to EN 1993-1-5:2010-12 §4.4(2)
 
     Args:
         bar_b: Decisive width :math:`\bar{b}`,
-        see also EN 1993-1-1:2010-12 Tab. 5.2
+            see also EN 1993-1-1:2010-12 Tab. 5.2
         t: Plate thickness :math:`t`
         epsilon: Epsilon factor :math:`\epsilon`, see
-        :meth:`ec3.crosssection.classification.calc_epsilon`
+            ec3.crosssection.classification.calc_epsilon
         k_sigmap: plate buckling factor :math:`k_{\sigma,p}`, see calc_k_sigmap
 
     Returns: Relative plate slenderness :math:`\\bar{\lambda}_p`
 
     """
-    bar_lambda_p = (bar_b / t) / (28.4 * epsilon * np.sqrt(k_sigmap))
+    bar_lambda_p: float = (bar_b / t) / (28.4 * epsilon * np.sqrt(k_sigmap))
     return bar_lambda_p
 
 
-def calc_rho(support: PlateSupport,  # todo rename to rho_p?
-             bar_lambda_p: float,
-             psi: float = 1.0) -> float:
-    """Calculates the reduction factor :math:`\\rho`
+def calc_rho_p(support: PlateSupport,
+               bar_lambda_p: float,
+               psi: float = 1.0) -> float:
+    r"""Calculates the reduction factor :math:`\rho_p` for plate buckling
 
     Calculation for longitudinal plate buckling and two side supported or one
      side supported buckling plates without stiffeners.
@@ -80,20 +80,19 @@ def calc_rho(support: PlateSupport,  # todo rename to rho_p?
     if support == PlateSupport.TWO_SIDE:
         min_bar_lambda_p = 0.5 + np.sqrt(0.085 - 0.055 * psi)
     if bar_lambda_p <= min_bar_lambda_p:
-        rho = 1.0
+        rho_p = 1.0
     else:  # bar_lambda_p > min_bar_lambda_p
         if support == PlateSupport.ONE_SIDE:
             rho = np.divide(bar_lambda_p - 0.188, bar_lambda_p ** 2)
         elif support == PlateSupport.TWO_SIDE:
             rho = np.divide(bar_lambda_p - 0.055 * (3 + psi),
                             bar_lambda_p ** 2)
-        rho = 1.0 if rho > 1.0 else rho
-    return rho
+        rho_p = 1.0 if rho > 1.0 else rho
+    return rho_p
 
 
 def calc_k_sigmap(psi: float, support: PlateSupport) -> float:
-    """
-    Calculate plate buckling facotr for Two-side supported plate
+    r"""Calculate plate buckling facotr for Two-side supported plate
 
     One-side supported plate not supported!
 
@@ -125,8 +124,7 @@ def calc_k_sigmap(psi: float, support: PlateSupport) -> float:
 
 def calc_sigma_E(t: Meter,
                  b: Meter) -> Pascal:
-    """
-    Calculate maximum elastic stress value :math:`\sigma_E` for the plate
+    r"""Calculate maximum elastic stress value :math:`\sigma_E` for the plate
 
     Calculation according to EN 1993-1-5:2019-10 §A.1(2) with
     E = 21_000 kN/cm² and v = 0,3
@@ -143,7 +141,7 @@ def calc_sigma_E(t: Meter,
 
 
 def calc_sigma_crp(k_sigmap: float, sigma_E: Pascal) -> Pascal:
-    """
+    r"""Calculate critical stress value :math:`\sigma_{cr,p}` for plate buckling
 
     Calculation according to EN 1993-1-5:2019-10 §A.1(2) with
     E = 21_000 kN/cm² and v = 0,3
@@ -160,32 +158,32 @@ def calc_sigma_crp(k_sigmap: float, sigma_E: Pascal) -> Pascal:
 
 
 def calc_effective_width(psi: float,
-                         rho: float,
+                         rho_p: float,
                          bar_b: Meter) -> MeterTriple:
-    """Calculate effective plate width
+    r"""Calculate effective plate widths :math:`(b_{eff}, b_{e1}, b_{e2})`
 
     Calculation according to EN 1993-1-5:2019-10 Tab. 4.1
 
     Args:
         psi: stress ratio :math:`\psi = \sigma_2 / \sigma_1`
-        rho: reduction factor :math:`\rho` for plate buckling, see calc_rho # todo rename to rho_p?
-        bar_b:
+        rho_p: reduction factor :math:`\rho` for plate buckling, see calc_rho_p
+        bar_b: Decisive width :math:`\bar{b}`
 
-    Returns: :math:`(b_{eff}, b_{e1}, b_{e2})`
+    Returns: Effective plate widths :math:`(b_{eff}, b_{e1}, b_{e2})`
 
     """
     b_eff: Meter
     b_e1: Meter
     b_e2: Meter
     if psi == 1.0:
-        b_eff = rho * bar_b
+        b_eff = rho_p * bar_b
         b_e1 = b_e2 = 0.5 * b_eff
     elif 1.0 > psi >= 0.0:
-        b_eff = rho * bar_b
+        b_eff = rho_p * bar_b
         b_e1 = 2.0 / (5.0 - psi) * b_eff
         b_e2 = b_eff - b_e1
     elif psi < 0.0:
-        b_eff = rho * bar_b / (1.0 - psi)
+        b_eff = rho_p * bar_b / (1.0 - psi)
         b_e1 = 0.4 * b_eff
         b_e2 = 0.6 * b_eff
     return b_eff, b_e1, b_e2
@@ -193,8 +191,10 @@ def calc_effective_width(psi: float,
 
 # flexural buckling of the compression flange
 def calc_sigma_crc(t: Meter,
-                   a: Meter) -> Pascal:  # E: modulus of elasticity = 210 000 N/mm², v=0,3 Poisson's ratio in elastic range, t: thickness
-    """
+                   a: Meter) -> Pascal:
+    r"""Calculate critical stress value :math:`\sigma_{cr,c}`
+
+    Due to flexural buckling of the compression flange
 
     Calculation according to EN 1993-1-5:2019-10 $4.5.3(2) and §A.1(2) with
     E = 21_000 kN/cm² and v = 0,3
@@ -211,30 +211,27 @@ def calc_sigma_crc(t: Meter,
     return sigma_crc
 
 
-def calc_bar_lambda_c(f_y: Pascal, sigma_crc: Pascal):  # TODO eq 4.10
-    """
-    Calculate the relative slenderness for flexural flange buckling
+def calc_bar_lambda_c(f_y: Pascal, sigma_crc: Pascal) -> float:
+    r"""Calculate the relative slenderness for flexural flange buckling
 
     Calculation according to EN 1993-1-5:2019-10 §4.5.3(4)
 
     Args:
         f_y: yield stress :math:`f_y`
         sigma_crc: critical stress :math:`\sigma_{cr,c}`
-         for flexural flange buckling
+         for flexural flange buckling, see calc_sigma_crc
 
     Returns: relative slenderness for flexural flange buckling
      :math:`\\bar{\\lambda_c}`
 
     """
-    bar_lambda_c = np.sqrt(f_y / sigma_crc)
+    bar_lambda_c: float = np.sqrt(f_y / sigma_crc)
     return bar_lambda_c
 
 
-# buckling line
 def calc_chi_c(bar_lambda_c: float) -> float:  # see 4.5.3(5)
-    r"""
-
-    Calculates the reduction factor :math:`\chi_c` for lateral buckling-like behavior
+    r"""Calculate the reduction factor :math:`\chi_c` for lateral buckling-like
+     behavior
 
     Calculation according to EN 1993-1-5:2019-10 §4.5.3(5) and
      EN 1993-1-1:2010-12 §6.3.1.2
@@ -251,29 +248,32 @@ def calc_chi_c(bar_lambda_c: float) -> float:  # see 4.5.3(5)
     return chi_c
 
 
-def calc_xi(sigma_crp, sigma_crc) -> float:
+def calc_xi(sigma_crp: Pascal, sigma_crc: Pascal) -> float:
     r"""
-    Calculate the interaction factor between plate buckling and flange buckling
+    Calculate the interaction factor :math:`\xi` between plate and
+     flange buckling
 
     Calculation according to EN 1993-1-5:2019-10 §4.5.4(1)
 
     Args:
         sigma_crp: critical stress :math:`\sigma_{cr,p}` for plate buckling
-        sigma_crc: critical stress :math:`\sigma_{cr,c}` for buckling of the compression flange
+        sigma_crc: critical stress :math:`\sigma_{cr,c}` for buckling of the
+            compression flange
 
     Returns: interaction factor :math:`\xi`
 
     """
-    xi = np.clip(sigma_crp / sigma_crc - 1.0, 0.0, 1.0)
+    xi: float = np.clip(sigma_crp / sigma_crc - 1.0, 0.0, 1.0)
     return xi
 
 
-def calc_rho_c(rho: float, chi_c: float,
-               xi: float) -> float:  # todo rename rho_p?
-    r"""
+def calc_rho_c(rho_p: float, chi_c: float,
+               xi: float) -> float:
+    r"""Calculate reduction factor :math:`\rho_c` due to buckling
 
     Args:
-        rho: reduction factor :math:`\rho` for plate buckling, see calc_rho
+        rho_p: reduction factor :math:`\rho_p` for plate buckling,
+            see calc_rho_p
         chi_c: reduction factor :math:`\chi_c` for compression flange buckling,
             see calc_chi_c
         xi: interaction factor :math:`\xi`, see calc_xi
@@ -281,16 +281,15 @@ def calc_rho_c(rho: float, chi_c: float,
     Returns: final reduction factor :math:`\rho_c`
 
     """
-    rho_c = (rho - chi_c) * xi * (2 - xi) + chi_c
+    rho_c = (rho_p - chi_c) * xi * (2 - xi) + chi_c
     return rho_c
 
 
-# todo calc eta
 def calc_eta_1(f_y: Pascal, N_Ed: Newton, A_eff: Meter_2,
                M_y_Ed: Newtonmeter, e_yN: Meter, W_yeff: Meter_3,
                M_z_Ed: Newtonmeter, e_zN: Meter, W_zeff: Meter_3) -> Eta:
     r"""
-    eta_1 for plate buckling with effective width method
+    Load factor :math:`\eta_1` for plate buckling with effective width method
 
     Valid for axial force and two axial bending moment
 
@@ -316,35 +315,59 @@ def calc_eta_1(f_y: Pascal, N_Ed: Newton, A_eff: Meter_2,
     Returns: load factor :math:`\eta_1` by effective width method
 
     """
-    eta_1 = (N_Ed / (f_y * A_eff / ec3.gamma_M0())
+    eta_1: Eta = (N_Ed / (f_y * A_eff / ec3.gamma_M0())
              + (M_y_Ed + N_Ed * e_yN) / (f_y * W_yeff / ec3.gamma_M0())
              + (M_z_Ed + N_Ed * e_zN) / (f_y * W_zeff / ec3.gamma_M0()))
     return eta_1
 
 
-########## Shear buckling #############
+# Shear buckling
 # For shear buckling resistance, EN 1993-1-5 covers panels
 # supported on four edges only.
 
-# according to EC3-1-5 and EC3-1-1 8.2.6(6)
+
 def is_shear_buckling_verification_required(h_w: Meter,
-                                            t: Meter,
+                                            t_w: Meter,
                                             steel_grade: BasicStructuralSteel,
                                             stiffeners: PlateStiffeners) \
                                             -> bool:
-    # lexicographic comparison
+    r"""Check if shear buckling verificatio is required
+
+    Only non-stiffened plates are supported which are supported on four edges.
+    Calculation according to EN 1993-1-5:2019-10 §5.1(2)
+
+    Args:
+        h_w: Web height :math:`h_w`  from flange to flange
+        t_w: Web thickness :math:`t_w`
+        steel_grade: Steel grade, see eurocodedesign.materials.structuralsteel
+        stiffeners: stiffeners on the plate
+
+    Returns: True, if shear buckling verification is required
+
+    """
     eta: float = platebuckling.get_eta(steel_grade)
     epsilon: float = calc_epsilon(steel_grade.f_yk)
 
     if stiffeners == PlateStiffeners.NONE:
-        return h_w / t > 72 / eta * epsilon
+        return h_w / t_w > 72 / eta * epsilon
     else:
         raise NotImplementedError("Not implemented for stiffened plates")
 
 
-# see eq a.5
 def calc_k_tau(h_w: Meter, a: Meter, stiffeners: PlateStiffeners) -> float:
-    if PlateStiffeners != PlateStiffeners.NONE:
+    r"""Calculate shear plate buckling factor :math:`k_\tau`
+
+    According to EN 1993-1-5:2019-10 §A.3(1)
+
+    Args:
+        h_w: Web height :math:`h_w`
+        a: Distance :math:`a` between lateral stiffeners
+        stiffeners: Type of plate stiffening
+
+    Returns: Shear plate buckling factor :math:`k_\tau`
+
+    """
+    if stiffeners != PlateStiffeners.NONE:
         raise NotImplementedError("Not implemented for stiffeners")
     k_tau: float
     if a / h_w >= 1.0:
@@ -354,20 +377,52 @@ def calc_k_tau(h_w: Meter, a: Meter, stiffeners: PlateStiffeners) -> float:
     return k_tau
 
 
-# see eq 5.4
 def calc_tau_cr(k_tau: float, sigma_E: Pascal) -> Pascal:
-    t_cr = k_tau * sigma_E
+    """Calculate :math:`\tau_{cr}`
+
+    According to EN 1993-1-5:2019-10 §5.4(2)
+
+    Args:
+        k_tau: Shear plate buckling factor :math:`k_\tau`, see calc_k_tau
+        sigma_E: yield stress :math:`sigma_E`, see calc_sigma_E
+
+    Returns: Critical shear stress :math:`\tau_{cr}`
+
+    """
+    tau_cr = k_tau * sigma_E
+    return tau_cr
 
 
-# according to eq 5.3
 def calc_bar_lambda_w(f_yw: Pascal, tau_cr: Pascal) -> float:
-    bar_lambda_w = 0.76 * np.sqrt(f_yw / tau_cr)
+    r"""Calculate modified web slenderness :math:`\bar{\lambda}_w`
+
+    Args:
+        f_yw: Yield stress :math:`f_yw` of the web
+        tau_cr: Critical shear stress :math:`\tau_{cr}`
+
+    Returns: Modified web slenderness :math:`\bar{\lambda}_w`
+
+    """
+    bar_lambda_w: float = 0.76 * np.sqrt(f_yw / tau_cr)
     return bar_lambda_w
 
 
 def calc_chi_w(bar_lambda_w: float,
                steel_grade: BasicStructuralSteel,
                stiffeners: PlateStiffeners) -> float:
+    r"""Calculate shear buckling reduction factor :math:`\chi_w`
+
+    According to EN 1993-1-5:2019-10 §5.3(1)
+
+    Args:
+        bar_lambda_w: Modified web slenderness :math:`\bar{\lambda}_w`,
+            see calc_bar_lambda_w()
+        steel_grade: Steel grade, see eurocodedesign.materials.strucuralsteel
+        stiffeners: Type of plate stiffening
+
+    Returns: Reduction factor :math:`\chi_w` due to web (shear) buckling
+
+    """
     eta: float = ec3.platebuckling.get_eta(steel_grade)
     chi_w: float
     if bar_lambda_w < 0.83 / eta:
@@ -383,12 +438,32 @@ def calc_chi_w(bar_lambda_w: float,
 
 
 def calc_V_bw_Rd(chi_w: float, f_yw: Pascal, h_w: Meter,
-                 t: Meter) -> Newton:  # 5.2
-    V_bw_Rd: Newton = (chi_w * f_yw * h_w * t) / (np.sqrt(3) * ec3.gamma_M1())
+                 t_w: Meter) -> Newton:  # 5.2
+    r"""Calculate design value :math:`V_{bw,Rd}` of the web
+
+    According to EN 1993-1-5:2019-10 §5.2(1)
+
+    Args:
+        chi_w: web reduction factor :math:`\chi_w`, see calc_chi_w()
+        f_yw: yield stress :math:`f_{yw}` of the web
+        h_w: web height :math:`h_w` from flange to flange
+        t_w: web thickness :math:`t_w`
+
+    Returns: design value :math:`V_{bw,Rd}` of the web
+
+    """
+    V_bw_Rd: Newton = (chi_w * f_yw * h_w * t_w)/(np.sqrt(3) * ec3.gamma_M1())
     return V_bw_Rd
 
 
 def calc_V_bf_Rd() -> NoReturn:
+    """Design value of shear buckling resistance of the flange
+
+    According to EN 1993-1-5:2019-10 §5.4
+
+    Not implemented, yet.
+
+    """
     raise NotImplementedError  # 5.4, eq. 5.8
 
 
@@ -397,13 +472,39 @@ def calc_V_b_Rd(V_bw_Rd: Newton,
                 steel_grade: BasicStructuralSteel,
                 f_yw: Pascal,
                 h_w: Meter,
-                t: Meter) -> Newton:
+                t_w: Meter) -> Newton:
+    r"""Calculate design value :math:`V_{b,Rd}` of shear buckling resistance
+
+    According to EN 1993-1-5:2019-10 §5.2(1)
+
+    Args:
+        V_bw_Rd: Design value of shear buckling resistance of the web
+        V_bf_Rd: Design value of shear buckling resistance of the flange
+        steel_grade: Steel grade
+        f_yw: yield stress :math:`f_{yw}` of the web
+        h_w: web height :math:`h_w`
+        t_w: web thickness :math:`t_w`
+
+    Returns: Shear buckling resistance :math:`V_{b,Rd}`
+
+    """
     eta: float = get_eta(steel_grade)
     V_b_Rd: Newton = V_bw_Rd + V_bf_Rd
-    max_V_b_Rd: Pascal = (eta * f_yw * h_w * t) / (np.sqrt(3) * ec3.gamma_M1())
+    max_V_b_Rd: Newton = (eta * f_yw * h_w * t_w)/(np.sqrt(3) * ec3.gamma_M1())
     return min(V_b_Rd, max_V_b_Rd)
 
 
-def calc_eta_3(V_Ed: Pascal, V_bw_Rd: Pascal) -> Eta:
-    eta_3: Eta = V_Ed / V_bw_Rd
+def calc_eta_3(V_Ed: Pascal, V_b_Rd: Pascal) -> Eta:
+    r"""Calculate load factor :math:`\eta_3` due to shear buckling
+
+    According to EN 1993-1-5:2019-10 §5.4(1)
+
+    Args:
+        V_Ed: design value :math:`V_{Ed}` of shear force and torsion
+        V_b_Rd: design value :math:`V_{b,Rd}` of shear buckling resistance
+
+    Returns: load factor :math:`\eta_3` due to shear force
+
+    """
+    eta_3: Eta = V_Ed / V_b_Rd
     return eta_3
