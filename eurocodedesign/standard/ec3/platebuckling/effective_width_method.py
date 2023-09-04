@@ -5,7 +5,7 @@ import numpy as np
 from eurocodedesign.core.typing import MeterTriple, Eta
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
 import eurocodedesign.standard.ec3 as ec3
-from eurocodedesign.standard.ec3 import platebuckling
+from eurocodedesign.standard.ec3 import platebuckling, buckling
 from eurocodedesign.standard.ec3.crosssection.classification import \
     calc_epsilon
 from eurocodedesign.standard.ec3.platebuckling import PlateSupport, \
@@ -141,7 +141,7 @@ def calc_sigma_E(t: Meter,
 
 
 def calc_sigma_crp(k_sigmap: float, sigma_E: Pascal) -> Pascal:
-    r"""Calculate critical stress value :math:`\sigma_{cr,p}` for plate buckling
+    r"""Calculate critical stress :math:`\sigma_{cr,p}` for plate buckling
 
     Calculation according to EN 1993-1-5:2019-10 §A.1(2) with
     E = 21_000 kN/cm² and v = 0,3
@@ -316,8 +316,8 @@ def calc_eta_1(f_y: Pascal, N_Ed: Newton, A_eff: Meter_2,
 
     """
     eta_1: Eta = (N_Ed / (f_y * A_eff / ec3.gamma_M0())
-             + (M_y_Ed + N_Ed * e_yN) / (f_y * W_yeff / ec3.gamma_M0())
-             + (M_z_Ed + N_Ed * e_zN) / (f_y * W_zeff / ec3.gamma_M0()))
+                  + (M_y_Ed + N_Ed * e_yN) / (f_y * W_yeff / ec3.gamma_M0())
+                  + (M_z_Ed + N_Ed * e_zN) / (f_y * W_zeff / ec3.gamma_M0()))
     return eta_1
 
 

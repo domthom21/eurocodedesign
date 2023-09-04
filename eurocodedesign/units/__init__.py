@@ -272,11 +272,10 @@ def isclose(a: AbstractUnit,
             b: AbstractUnit,
             rtol: float = 1e-05,
             atol: float = 1e-08) -> bool:
-    if type(a) != type(b):
+    if type(a) is type(b):
         raise TypeError
     return (abs(a.to_numeric() - b.to_numeric()) <=
             (atol + rtol * abs(b.to_numeric())))
-
 
 
 class Seconds(AbstractUnit):
@@ -381,7 +380,7 @@ class Pascal(AbstractUnit):
     _physical_type = PhysicalType.PRESSURE
     _unit_str = "Pa"
 
-    @overload # type: ignore[override]
+    @overload  # type: ignore[override]
     def __mul__(self, other: float | int) -> Pascal:
         ...
 
