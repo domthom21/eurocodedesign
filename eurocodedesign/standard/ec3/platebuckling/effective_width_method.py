@@ -164,9 +164,9 @@ def calc_effective_width(bar_b: Meter,
     Calculation according to EN 1993-1-5:2019-10 Tab. 4.1
 
     Args:
-        psi: stress ratio :math:`\psi = \sigma_2 / \sigma_1`
-        rho_p: reduction factor :math:`\rho` for plate buckling, see calc_rho_p
         bar_b: Decisive width :math:`\bar{b}`
+        rho_p: reduction factor :math:`\rho` for plate buckling, see calc_rho_p
+        psi: stress ratio :math:`\psi = \sigma_2 / \sigma_1`
 
     Returns: Effective plate widths :math:`(b_{eff}, b_{e1}, b_{e2})`
 

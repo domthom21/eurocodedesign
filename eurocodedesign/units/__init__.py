@@ -424,8 +424,8 @@ _allowed_multiplications = {
     (Kilogram, Meter_per_Second_2): Newton,
     (Pascal, Meter): Newton_per_Meter,
     (Pascal, Meter_2): Newton,
-    (Pascal, Meter_3): Joule, # Newtonmeter
-    (Newton, Meter): Joule, # Newtonmeter
+    (Pascal, Meter_3): Joule,  # Newtonmeter
+    (Newton, Meter): Joule,  # Newtonmeter
     (Newton_per_Meter, Meter): Newton,
 }
 

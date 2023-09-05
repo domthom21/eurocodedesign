@@ -28,8 +28,8 @@ def test_buckling_like():
             == approx(0.194, 0.01))
     assert (ewm.calc_rho_c(0.485, 0.194, 0.44)
             == approx(0.394, 0.001))
-    assert (ewm.calc_effective_width(2.16)
-            == approx(0.194, 0.001))
+    assert (ewm.calc_effective_width(1000*mm(), 0.32, 1)
+            == (0.32*1000*mm(), 0.5*0.32*1000*mm(), .5*0.32*1000*mm()))
     assert (ewm.calc_eta_1(S355().f_yk,
                            90*N()/mm2()*42.7*cm2()/0.327,
                            42.7*cm2())
