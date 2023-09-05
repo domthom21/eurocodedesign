@@ -5,7 +5,7 @@ import numpy as np
 from eurocodedesign.core.typing import MeterTriple, Eta
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
 import eurocodedesign.standard.ec3 as ec3
-from eurocodedesign.standard.ec3 import platebuckling, buckling
+from eurocodedesign.standard.ec3 import platebuckling, buckling # noqa: F401
 from eurocodedesign.standard.ec3.crosssection.classification import \
     calc_epsilon
 from eurocodedesign.standard.ec3.platebuckling import PlateSupport, \
@@ -83,9 +83,9 @@ def calc_rho_p(support: PlateSupport,
         rho_p = 1.0
     else:  # bar_lambda_p > min_bar_lambda_p
         if support == PlateSupport.ONE_SIDE:
-            rho_p = (bar_lambda_p - 0.188) / ( bar_lambda_p ** 2)
+            rho_p = (bar_lambda_p - 0.188) / (bar_lambda_p ** 2)
         elif support == PlateSupport.TWO_SIDE:
-            rho_p = (bar_lambda_p - 0.055 * (3 + psi) ) / (bar_lambda_p ** 2)
+            rho_p = (bar_lambda_p - 0.055 * (3 + psi)) / (bar_lambda_p ** 2)
         rho_p = 1.0 if rho_p > 1.0 else rho_p
     return rho_p
 
