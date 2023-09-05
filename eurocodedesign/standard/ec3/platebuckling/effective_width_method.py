@@ -83,11 +83,10 @@ def calc_rho_p(support: PlateSupport,
         rho_p = 1.0
     else:  # bar_lambda_p > min_bar_lambda_p
         if support == PlateSupport.ONE_SIDE:
-            rho = np.divide(bar_lambda_p - 0.188, bar_lambda_p ** 2)
+            rho_p = (bar_lambda_p - 0.188) / ( bar_lambda_p ** 2)
         elif support == PlateSupport.TWO_SIDE:
-            rho = np.divide(bar_lambda_p - 0.055 * (3 + psi),
-                            bar_lambda_p ** 2)
-        rho_p = 1.0 if rho > 1.0 else rho
+            rho_p = (bar_lambda_p - 0.055 * (3 + psi) ) / (bar_lambda_p ** 2)
+        rho_p = 1.0 if rho_p > 1.0 else rho_p
     return rho_p
 
 
@@ -157,9 +156,9 @@ def calc_sigma_crp(k_sigmap: float, sigma_E: Pascal) -> Pascal:
     return sigma_crp
 
 
-def calc_effective_width(psi: float,
+def calc_effective_width(bar_b: Meter,
                          rho_p: float,
-                         bar_b: Meter) -> MeterTriple:
+                         psi: float) -> MeterTriple:
     r"""Calculate effective plate widths :math:`(b_{eff}, b_{e1}, b_{e2})`
 
     Calculation according to EN 1993-1-5:2019-10 Tab. 4.1
@@ -285,9 +284,15 @@ def calc_rho_c(rho_p: float, chi_c: float,
     return rho_c
 
 
-def calc_eta_1(f_y: Pascal, N_Ed: Newton, A_eff: Meter_2,
-               M_y_Ed: Newtonmeter, e_yN: Meter, W_yeff: Meter_3,
-               M_z_Ed: Newtonmeter, e_zN: Meter, W_zeff: Meter_3) -> Eta:
+def calc_eta_1(f_y: Pascal,
+               N_Ed: Newton,
+               A_eff: Meter_2,
+               M_y_Ed: Newtonmeter = 0*Newtonmeter(),
+               W_yeff: Meter_3 = np.infty*Meter_3(),
+               e_yN: Meter = 0*Meter(),
+               M_z_Ed: Newtonmeter = 0*Newtonmeter(),
+               W_zeff: Meter_3 = np.infty*Meter_3(),
+               e_zN: Meter = 0*Meter()) -> Eta:
     r"""
     Load factor :math:`\eta_1` for plate buckling with effective width method
 
@@ -301,21 +306,21 @@ def calc_eta_1(f_y: Pascal, N_Ed: Newton, A_eff: Meter_2,
         A_eff: effective area :math:`A_{eff}` of the cross-section
         M_y_Ed: design value :math:`M_{y,Ed}` of the bending moment
          about y-y axis
+        W_yeff: effective section modulus :math:`W_{y,eff}` about y-y axis
         e_yN: shift of the centroid :math:`e_{y,N}` of the effective area
          :math:`A_{eff}` relative to the centroid of the gross cross-section,
-          resulting in a bending moment about y-y axis
-        W_yeff: effective section modulus :math:`W_{y,eff}` about y-y axis
+         resulting in a bending moment about y-y axis
         M_z_Ed: design value :math:`M_{z,Ed}` of the bending moment
-        about z-z axis
+         about z-z axis
+        W_zeff: effective section modulus :math:`W_{z,eff}` about z-z axis
         e_zN: shift of the centroid :math:`e_{z,N}` of the effective area
          :math:`A_{eff}` relative to the centroid of the gross cross-section,
-          resulting in a bending moment about z-z axis
-        W_zeff: effective section modulus :math:`W_{z,eff}` about z-z axis
+         resulting in a bending moment about z-z axis
 
     Returns: load factor :math:`\eta_1` by effective width method
 
     """
-    eta_1: Eta = (N_Ed / (f_y * A_eff / ec3.gamma_M0())
+    eta_1: Eta = ((N_Ed / (f_y * A_eff / ec3.gamma_M0()))
                   + (M_y_Ed + N_Ed * e_yN) / (f_y * W_yeff / ec3.gamma_M0())
                   + (M_z_Ed + N_Ed * e_zN) / (f_y * W_zeff / ec3.gamma_M0()))
     return eta_1

@@ -182,8 +182,8 @@ class AbstractUnit(ABC):
                               / (self._prefix.value
                                  ** self._power), self._prefix)
         if not isinstance(other, AbstractUnit):
-            raise TypeError('No divisions by another unit allowed'
-                            f' for f{type(self)}')
+            raise TypeError(f"No divisions by another unit allowed"
+                            f" for {type(self)}")
         self_type = type(self)
         other_type = type(other)
 
@@ -272,7 +272,7 @@ def isclose(a: AbstractUnit,
             b: AbstractUnit,
             rtol: float = 1e-05,
             atol: float = 1e-08) -> bool:
-    if type(a) is type(b):
+    if type(a) is not type(b):
         raise TypeError
     return (abs(a.to_numeric() - b.to_numeric()) <=
             (atol + rtol * abs(b.to_numeric())))
@@ -424,7 +424,8 @@ _allowed_multiplications = {
     (Kilogram, Meter_per_Second_2): Newton,
     (Pascal, Meter): Newton_per_Meter,
     (Pascal, Meter_2): Newton,
-    (Newton, Meter): Joule,
+    (Pascal, Meter_3): Joule, # Newtonmeter
+    (Newton, Meter): Joule, # Newtonmeter
     (Newton_per_Meter, Meter): Newton,
 }
 

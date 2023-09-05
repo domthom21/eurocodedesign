@@ -4,7 +4,7 @@ from eurocodedesign.materials.structuralsteel import S355
 from eurocodedesign.standard.ec3.platebuckling import PlateSupport, \
     PlateStiffeners
 import eurocodedesign.standard.ec3.platebuckling.effective_width_method as ewm
-from eurocodedesign.units import mm, N, mm2, kN, isclose
+from eurocodedesign.units import mm, N, mm2, kN, isclose, cm2
 
 
 def test_longitudinal():
@@ -28,10 +28,12 @@ def test_buckling_like():
             == approx(0.194, 0.01))
     assert (ewm.calc_rho_c(0.485, 0.194, 0.44)
             == approx(0.394, 0.001))
-    # assert (ewm.calc_effective_width(2.16)
-    #       == approx(0.194, 0.001))
-    # assert (ewm.calc_eta_1(1000 * mm(), 10 * mm(), 0.81, 4.0)
-    #        == approx(2.17, 0.01))
+    assert (ewm.calc_effective_width(2.16)
+            == approx(0.194, 0.001))
+    assert (ewm.calc_eta_1(S355().f_yk,
+                           90*N()/mm2()*42.7*cm2()/0.327,
+                           42.7*cm2())
+            == approx(0.776, 0.01))
 
 
 def test_shear_buckling():
@@ -54,6 +56,13 @@ def test_shear_buckling():
     assert isclose(ewm.calc_V_bw_Rd(1.096, 355 * N() / mm2(),
                                     1000*mm(),
                                     10*mm()),
-                   2246354*N())
+                   2246.354*kN())
+    assert isclose(ewm.calc_V_b_Rd(2000*kN(),
+                                   2000*kN(),
+                                   S355(),
+                                   S355().f_yk,
+                                   1000*mm(),
+                                   12*mm()),
+                   2951.4145760 * kN())
     assert (ewm.calc_eta_3(700*kN(), 2683*kN())
             == approx(0.261, 0.01))
