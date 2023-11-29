@@ -17,7 +17,7 @@ import numpy as np
 from eurocodedesign.core.typing import MeterTriple, Eta
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
 import eurocodedesign.standard.ec3 as ec3
-from eurocodedesign.standard.ec3 import platebuckling, buckling # noqa: F401
+from eurocodedesign.standard.ec3 import platebuckling, buckling  # noqa: F401
 from eurocodedesign.standard.ec3.crosssection.classification import \
     calc_epsilon
 from eurocodedesign.standard.ec3.platebuckling import PlateSupport, \
