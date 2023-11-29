@@ -17,7 +17,8 @@ import numpy as np
 from eurocodedesign.core.typing import MeterTriple, Eta
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
 import eurocodedesign.standard.ec3 as ec3
-from eurocodedesign.standard.ec3 import platebuckling, buckling
+import eurocodedesign.standard.ec3.buckling
+from eurocodedesign.standard.ec3 import platebuckling
 from eurocodedesign.standard.ec3.crosssection.classification import \
     calc_epsilon
 from eurocodedesign.standard.ec3.platebuckling import PlateSupport, \
@@ -220,8 +221,8 @@ def calc_effective_width(support: PlateSupport,
 
     """
     if support != PlateSupport.TWO_SIDE:
-        raise NotImplementedError(f"calc_effective_width only implemented for"
-                                  f"two-side supported plates")
+        raise NotImplementedError("calc_effective_width only implemented for"
+                                  "two-side supported plates")
     b_eff: Meter
     b_e1: Meter
     b_e2: Meter
@@ -296,8 +297,8 @@ def calc_chi_c(stiffeners: PlateStiffeners,
 
     """
     if stiffeners != PlateStiffeners.NONE:
-        raise NotImplementedError(f"calc_chi_c only implemented "
-                                  f"for unstiffened plates")
+        raise NotImplementedError("calc_chi_c only implemented "
+                                  "for unstiffened plates")
 
     chi_c: float = ec3.buckling.calc_chi(bar_lambda_c,
                                          ec3.buckling.BucklingLine.a)
