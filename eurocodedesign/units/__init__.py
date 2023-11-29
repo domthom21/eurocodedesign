@@ -43,7 +43,7 @@ class PhysicalType(Enum):
     ACCELERATION = auto()
     MASS = auto()
     FORCE = auto()
-    TENSION = auto()
+    STIFFNESS = auto()
     PRESSURE = auto()
     ENERGY = auto()
     TEMPERATURE = auto()
@@ -357,7 +357,7 @@ class Newton(AbstractUnit):
 
 
 class Newton_per_Meter(AbstractUnit):
-    _physical_type = PhysicalType.TENSION
+    _physical_type = PhysicalType.STIFFNESS
     _unit_str = "N/m"
 
     @overload  # type: ignore[override]
