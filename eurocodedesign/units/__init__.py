@@ -16,12 +16,14 @@ TypeError: Addition not allowed for type <class 'eurocodedesign.units.Newton'>
 >>> 100*cm2()
 100.0 cm²
 """
+
 from __future__ import annotations
 from abc import ABC
 from enum import Enum, unique, auto
 from functools import partial
 import sys
-from typing import TypeAlias, Type, Optional, overload, cast
+from typing import TypeAlias, Type, Optional, overload, Any
+
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -41,6 +43,7 @@ class PhysicalType(Enum):
     ACCELERATION = auto()
     MASS = auto()
     FORCE = auto()
+    STIFFNESS = auto()
     PRESSURE = auto()
     ENERGY = auto()
     TEMPERATURE = auto()
@@ -179,8 +182,8 @@ class AbstractUnit(ABC):
                               / (self._prefix.value
                                  ** self._power), self._prefix)
         if not isinstance(other, AbstractUnit):
-            raise TypeError('No divisions by another unit allowed'
-                            f' for f{type(self)}')
+            raise TypeError(f"No divisions by another unit allowed"
+                            f" for {type(self)}")
         self_type = type(self)
         other_type = type(other)
 
@@ -265,6 +268,16 @@ class AbstractUnit(ABC):
         return float(self._value)
 
 
+def isclose(a: AbstractUnit,
+            b: AbstractUnit,
+            rtol: float = 1e-05,
+            atol: float = 1e-08) -> bool:
+    if type(a) is not type(b):
+        raise TypeError
+    return (abs(a.to_numeric() - b.to_numeric()) <=
+            (atol + rtol * abs(b.to_numeric())))
+
+
 class Seconds(AbstractUnit):
     _physical_type = PhysicalType.TIME
     _unit_str = "s"
@@ -312,13 +325,83 @@ class Newton(AbstractUnit):
     _physical_type = PhysicalType.FORCE
     _unit_str = "N"
 
-    def __truediv__(self, other: Meter_2) -> Pascal:  # type: ignore[override]
-        return cast(Pascal, AbstractUnit.__truediv__(self, other))
+    @overload  # type: ignore[override]
+    def __mul__(self, other: float | int) -> Newton:
+        ...
+
+    @overload
+    def __mul__(self, other: Meter) -> Newtonmeter:
+        ...
+
+    @overload
+    def __mul__(self, other: Newton) -> AbstractUnit:
+        ...
+
+    def __mul__(self, other: Any) -> Any:
+        return AbstractUnit.__mul__(self, other)
+
+    @overload  # type: ignore[override]
+    def __truediv__(self, other: float) -> Newton:
+        ...
+
+    @overload
+    def __truediv__(self, other: Newton) -> float:
+        ...
+
+    @overload
+    def __truediv__(self, other: Meter_2) -> Pascal:
+        ...
+
+    def __truediv__(self, other: Any) -> Any:
+        return AbstractUnit.__truediv__(self, other)
+
+
+class Newton_per_Meter(AbstractUnit):
+    _physical_type = PhysicalType.STIFFNESS
+    _unit_str = "N/m"
+
+    @overload  # type: ignore[override]
+    def __mul__(self, other: float | int) -> Newton_per_Meter:
+        ...
+
+    @overload
+    def __mul__(self, other: Meter) -> Newton:
+        ...
+
+    @overload
+    def __mul__(self, other: Newton_per_Meter) -> AbstractUnit:
+        ...
+
+    def __mul__(self, other: Any) -> Any:
+        return AbstractUnit.__mul__(self, other)
 
 
 class Pascal(AbstractUnit):
     _physical_type = PhysicalType.PRESSURE
     _unit_str = "Pa"
+
+    @overload  # type: ignore[override]
+    def __mul__(self, other: float | int) -> Pascal:
+        ...
+
+    @overload
+    def __mul__(self, other: Meter) -> Newton_per_Meter:
+        ...
+
+    @overload
+    def __mul__(self, other: Meter_2) -> Newton:
+        ...
+
+    @overload
+    def __mul__(self, other: Meter_3) -> Newtonmeter:
+        ...
+
+    @overload
+    def __mul__(self, other: Pascal) -> AbstractUnit:
+        ...
+
+    def __mul__(self, other: Any) -> Any:
+        return AbstractUnit.__mul__(self, other)
 
 
 class Joule(AbstractUnit):
@@ -339,8 +422,11 @@ _allowed_multiplications = {
     (Meter_per_Second, Seconds): Meter,
     (Meter_per_Second_2, Seconds): Meter_per_Second,
     (Kilogram, Meter_per_Second_2): Newton,
+    (Pascal, Meter): Newton_per_Meter,
     (Pascal, Meter_2): Newton,
-    (Newton, Meter): Joule,
+    (Pascal, Meter_3): Joule,  # Newtonmeter
+    (Newton, Meter): Joule,  # Newtonmeter
+    (Newton_per_Meter, Meter): Newton,
 }
 
 N: TypeAlias = Newton

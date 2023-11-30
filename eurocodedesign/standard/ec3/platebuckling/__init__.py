@@ -19,7 +19,7 @@ class PlateStiffeners(Enum):
 
 
 def get_eta(steel_grade: BasicStructuralSteel) -> float:
-    """Get eta according to EC3-1-5
+    """Get eta according to EC3-1-5:2019-10 §5.1(2)
 
     Args:
         steel_grade: Steel grade
@@ -27,5 +27,6 @@ def get_eta(steel_grade: BasicStructuralSteel) -> float:
     Returns: Eta
 
     """
+    # lexicographic comparison if steel grade is lower equal S460
     eta: float = 1.2 if steel_grade.name <= "S460" else 1.0
     return eta
