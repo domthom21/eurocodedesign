@@ -28,6 +28,6 @@ def test_NA():
     with pytest.raises(NotImplementedError):
         with ed.core.NA.CountryContext(country='de'):
             ed.core.NA.load_NDP(key='EN1993-1-1_6.1_note_2b#gamma_M10')
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(NotImplementedError):
         with ed.core.NA.CountryContext(country='ne'):
             ed.core.NA.load_NDP(key='EN1993-1-1_6.1_note_2b#gamma_M1')
