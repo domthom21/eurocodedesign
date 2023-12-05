@@ -17,14 +17,22 @@ Example:
         ... 1.10
         >>> ec3.gamma_M1(country=None)
         ... 1.00
+        >>> set_country('')
+        >>> with ed.core.NA.CountryContext(country='de'):
+        >>>     ec3.gamma_M1()
+        ... 1.10
+        >>> ec3.gamma_M1()
+        ... 1.00
 
 """
 from functools import wraps
-from typing import ParamSpec, TypeVar, Callable
+from types import TracebackType
+from typing import ParamSpec, TypeVar, Callable, cast
+import pandas as pd
+from pathlib import Path
 
+from eurocodedesign.config import config
 from eurocodedesign.core.typing import NACountry
-
-_NA_country: NACountry = None
 
 _P = ParamSpec('_P')
 _T = TypeVar('_T')
@@ -49,47 +57,77 @@ def NDP(func: Callable[_P, _T]) -> Callable[_P, _T]:
     return wrapper
 
 
-def set_country(country: NACountry) -> None:
+def set_country(country: NACountry = '') -> None:
     """Set the national annex country code
 
     If no country code is given, the national annex is neglected and given
     values from the main standard are taken.
 
     If no national defined parameters exists, each called function looking
-     for a NDP raises a ValueError
+     for a NDP raises a ValueError.
 
     Args:
-        country: country code according to ISO-3166-1 ALPHA-2 or None
+        country: country code according to ISO-3166-1 ALPHA-2 or empty string
 
     Returns: None
     """
-    global _NA_country
-    _NA_country = country
+
+    config['standard']['_NA']['country'] = country
+
+
+def get_country() -> NACountry:
+    return cast(NACountry, config['standard']['_NA']['country'])
+
+
+class CountryContext:
+    """Simple context manager for setting the country locally"""
+    def __init__(self, country: NACountry = '') -> None:
+        self.country: NACountry = country
+
+    def __enter__(self) -> None:
+        self.old_country: NACountry = get_country()
+        set_country(self.country)
+
+    def __exit__(self,
+                 exc_type: type[BaseException] | None,
+                 exc_val: BaseException | None,
+                 exc_tb: TracebackType | None) -> None:
+        set_country(self.old_country)
 
 
 def load_NDP(key: str,
              default: str = '',
-             country: NACountry = None) -> str:
+             country: NACountry = '') -> str:
     """Load a specific NDP by key from country
 
     Conversion to float or int must be done by user
 
+    If country is an empty string, country from global config is taken.
+    If this is also empty, the default value is returned
+
     Args:
         key: key of NDP to load
         default: default value to use
-        country: country code according to ISO-3166-1 ALPHA-2 or None
+        country: country code according to ISO-3166-1 ALPHA-2
 
-    Returns: value as string
+    Returns: NDP or default value as string
+
+    Raises:
+        NotImplementedError if no national annex data for given country exist
+         or if no NDP with given key exist
 
     """
-    import pandas as pd
-    from pathlib import Path
-
-    country = _NA_country if country is None else country
-    # No NA in general set, return default value
-    if country is None:
+    if not country:
+        country = config['standard']['_NA']['country']
+    # if still no country set, return default value
+    if not country:
         return default
     file = country + '.csv'
     path = Path(__file__).parent.parent / 'standard' / '_NA' / file
-    df = pd.read_csv(path, index_col="NDP_key")
-    return str(df['value'].get(key, default=default))
+    try:
+        df = pd.read_csv(path, index_col="NDP_key")
+        value = df.at[key, 'value']
+    except (KeyError, FileNotFoundError):
+        raise NotImplementedError(f"NDP not implemented for country {country}"
+                                  f" and NDP key {key}.")
+    return str(value)

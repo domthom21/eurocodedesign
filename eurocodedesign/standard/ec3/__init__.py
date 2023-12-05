@@ -4,7 +4,7 @@ from eurocodedesign.core.typing import NACountry
 
 
 @NDP
-def gamma_M0(country: NACountry = None) -> float:
+def gamma_M0(country: NACountry = '') -> float:
     r"""
     Partial factor :math:`\gamma_{M0}` for buildings
 
@@ -22,7 +22,7 @@ def gamma_M0(country: NACountry = None) -> float:
 
 
 @NDP
-def gamma_M1(country: NACountry = None) -> float:
+def gamma_M1(country: NACountry = '') -> float:
     r"""
     Partial factor :math:`\gamma_{M1}` for buildings
 
@@ -41,7 +41,7 @@ def gamma_M1(country: NACountry = None) -> float:
 
 
 @NDP
-def gamma_M2(country: NACountry = None) -> float:
+def gamma_M2(country: NACountry = '') -> float:
     r"""
     Partial factor :math:`\gamma_{M2}` for buildings
 
