@@ -13,7 +13,7 @@ config: Dict[str, Any] = {
     },
     'standard': {
         '_NA': {
-            'country': None
+            'country': ''
         }
     }
 }

@@ -25,17 +25,27 @@ Example:
         ... 1.00
 
 """
+from enum import Enum, unique
 from functools import wraps
 from types import TracebackType
-from typing import ParamSpec, TypeVar, Callable, cast
+from typing import ParamSpec, TypeVar, Callable
 import pandas as pd
 from pathlib import Path
 
-from eurocodedesign.config import config
-from eurocodedesign.core.typing import NACountry
+import eurocodedesign.config as cf
 
 _P = ParamSpec('_P')
 _T = TypeVar('_T')
+
+
+@unique
+class NACountry(Enum):
+    """Enum for representing the supported national annexes
+
+    Country code according to ISO-3166-1 ALPHA-2 or empty string
+    """
+    NONE = ''
+    DE = 'DE'
 
 
 def NDP(func: Callable[_P, _T]) -> Callable[_P, _T]:
@@ -57,7 +67,7 @@ def NDP(func: Callable[_P, _T]) -> Callable[_P, _T]:
     return wrapper
 
 
-def set_country(country: NACountry = '') -> None:
+def set_country(country: NACountry = NACountry.NONE) -> None:
     """Set the national annex country code
 
     If no country code is given, the national annex is neglected and given
@@ -72,16 +82,16 @@ def set_country(country: NACountry = '') -> None:
     Returns: None
     """
 
-    config['standard']['_NA']['country'] = country
+    cf.config['standard']['_NA']['country'] = country.value
 
 
 def get_country() -> NACountry:
-    return cast(NACountry, config['standard']['_NA']['country'])
+    return NACountry(cf.config['standard']['_NA']['country'])
 
 
 class CountryContext:
     """Simple context manager for setting the country locally"""
-    def __init__(self, country: NACountry = '') -> None:
+    def __init__(self, country: NACountry = NACountry.NONE) -> None:
         self.country: NACountry = country
 
     def __enter__(self) -> None:
@@ -97,7 +107,7 @@ class CountryContext:
 
 def load_NDP(key: str,
              default: str = '',
-             country: NACountry = '') -> str:
+             country: NACountry = NACountry.NONE) -> str:
     """Load a specific NDP by key from country
 
     Conversion to float or int must be done by user
@@ -117,17 +127,17 @@ def load_NDP(key: str,
          or if no NDP with given key exist
 
     """
-    if not country:
-        country = config['standard']['_NA']['country']
+    if country is NACountry.NONE:
+        country = get_country()
     # if still no country set, return default value
-    if not country:
+    if country is NACountry.NONE:
         return default
-    file = country + '.csv'
+    file = str(country.value) + '.csv'
     path = Path(__file__).parent.parent / 'standard' / '_NA' / file
     try:
         df = pd.read_csv(path, index_col="NDP_key")
         value = df.at[key, 'value']
-    except (KeyError, FileNotFoundError):
+    except KeyError:
         raise NotImplementedError(f"NDP not implemented for country {country}"
                                   f" and NDP key {key}.")
     return str(value)

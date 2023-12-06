@@ -1,10 +1,9 @@
 import eurocodedesign as ed
-from eurocodedesign.core.NA import NDP
-from eurocodedesign.core.typing import NACountry
+from eurocodedesign.core.NA import NDP, NACountry
 
 
 @NDP
-def gamma_M0(country: NACountry = '') -> float:
+def gamma_M0(country: NACountry = NACountry.NONE) -> float:
     r"""
     Partial factor :math:`\gamma_{M0}` for buildings
 
@@ -22,7 +21,7 @@ def gamma_M0(country: NACountry = '') -> float:
 
 
 @NDP
-def gamma_M1(country: NACountry = '') -> float:
+def gamma_M1(country: NACountry = NACountry.NONE) -> float:
     r"""
     Partial factor :math:`\gamma_{M1}` for buildings
 
@@ -41,7 +40,7 @@ def gamma_M1(country: NACountry = '') -> float:
 
 
 @NDP
-def gamma_M2(country: NACountry = '') -> float:
+def gamma_M2(country: NACountry = NACountry.NONE) -> float:
     r"""
     Partial factor :math:`\gamma_{M2}` for buildings
 
