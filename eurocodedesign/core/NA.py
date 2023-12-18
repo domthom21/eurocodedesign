@@ -8,17 +8,17 @@ the @NDP decorator.
 Example:
     ::
 
-        >>> from eurocodedesign.core.NA import set_country
+        >>> from eurocodedesign.core.NA import set_country, NACountry
         >>> import eurocodedesign.standard.ec3 as ec3
         >>> ec3.gamma_M1()
         ... 1.00
-        >>> set_country('de')
+        >>> set_country(NACountry.DE)
         >>> ec3.gamma_M1()
         ... 1.10
-        >>> ec3.gamma_M1(country=None)
+        >>> ec3.gamma_M1(country=NACountry.NONE)
         ... 1.00
-        >>> set_country('')
-        >>> with ed.core.NA.CountryContext(country='de'):
+        >>> set_country()
+        >>> with ed.core.NA.CountryContext(country=NACountry.DE):
         >>>     ec3.gamma_M1()
         ... 1.10
         >>> ec3.gamma_M1()
