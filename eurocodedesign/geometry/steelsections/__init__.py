@@ -143,6 +143,10 @@ _SECTION_DATA = {
            "section_class": RolledISection},
     "UC": {"filename": "uc_en10365_2017.csv",
            "section_class": RolledISection},
+    "HD": {"filename": "hd_en10365_2017.csv",
+           "section_class": RolledISection},
+    "HL": {"filename": "hl_en10365_2017.csv",
+           "section_class": RolledISection},       
     "CHS": {
         "filename": "chs_en10219_en10210_2006.csv",
         "section_class": CircularHollowSection,

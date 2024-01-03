@@ -89,6 +89,36 @@ def dummy_IPE240():
 
 
 @fixture
+def dummy_HL1000B():
+    geometric_properties = {
+        "name": "IPE240",
+        "h": 1000,
+        "b": 400,
+        "t_w": 19.0,
+        "t_f": 36.1,
+        "r": 30,
+        "m": 371.1,
+        "P": 3.510,
+        "A": 47280,
+        "A_vz": 18187,
+        "A_vy": 23016,
+        "I_y": 8137000000,
+        "i_y": 414.9,
+        "W_ely": 16270000,
+        "W_ply": 18360000,
+        "I_z": 385800000,
+        "i_z": 90.3,
+        "W_elz": 1929000,
+        "W_plz": 2984000,
+        "I_T": 15750000,
+        "W_T": 436290,
+        "I_w": 8.944e13,
+        "W_w": 927897100,
+    }
+    return ss.RolledISection(**geometric_properties)
+
+
+@fixture
 def dummy_CHS114x3():
     geometric_properties = {
         "name": "CHS114.3x3",
@@ -272,6 +302,11 @@ def test_load_section_props_input_is_wrong_section():
 def test_load_Lsection(dummy_L100x10):
     actual = ss.get("L100x10")
     assert actual == dummy_L100x10
+
+
+def test_load_HLsection(dummy_HL1000B):
+    actual = ss.get("HL1000B")
+    assert actual == dummy_HL1000B
 
 
 @patch("eurocodedesign.geometry.steelsections.import_section_database")
