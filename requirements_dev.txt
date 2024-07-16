@@ -1,5 +1,5 @@
 pip==23.3
-setuptools==67.6.1
+setuptools==70.0.0
 bump2version==0.5.11
 wheel==0.38.1
 watchdog==0.9.0
