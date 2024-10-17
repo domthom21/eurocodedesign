@@ -2,17 +2,24 @@
 STEEL PROFILE CLASSES
 """
 import os
+from math import sqrt
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, Type
 
+import numpy as np
 import pandas as pd
+from numpy.typing import ArrayLike
 
 from eurocodedesign.geometry.section import BasicSection
+from eurocodedesign.materials.structuralsteel import DENSITY
 
+@ dataclass(frozen=True)
+class SteelSection():
+    ...
 
 @dataclass(frozen=True)
-class SteelSection(BasicSection):
+class StandardSteelSection(BasicSection):
     # properties common among all steel sections (incl. major axis bending)
     m: float = field(kw_only=True)
     A: float = field(kw_only=True)
@@ -51,7 +58,7 @@ class ISection(SteelSection):
 
 
 @dataclass(frozen=True)
-class LSection(RolledSection):
+class LSection(RolledSection, StandardSteelSection):
     h: float = field(kw_only=True)
     b: float = field(kw_only=True)
     t: float = field(kw_only=True)
@@ -73,13 +80,13 @@ class HollowSection(SteelSection):
 
 
 @dataclass(frozen=True)
-class RolledISection(RolledSection, ISection):
+class RolledISection(RolledSection, ISection, StandardSteelSection):
     r: float = field(kw_only=True)
     P: float = field(kw_only=True)
 
 
 @dataclass(frozen=True)
-class CircularHollowSection(HollowSection):
+class CircularHollowSection(HollowSection, StandardSteelSection):
     D: float = field(kw_only=True)
     P: float = field(kw_only=True)
     t: float = field(kw_only=True)
@@ -100,7 +107,7 @@ class CircularHollowSection(HollowSection):
 
 
 @dataclass(frozen=True)
-class RectangularHollowSection(HollowSection):
+class RectangularHollowSection(HollowSection, StandardSteelSection):
     h: float = field(kw_only=True)
     b: float = field(kw_only=True)
     t: float = field(kw_only=True)
@@ -124,6 +131,38 @@ class SquareHollowSection(RectangularHollowSection):
         object.__setattr__(self, "i", self.i_y)
         object.__setattr__(self, "W_el", self.W_ely)
         object.__setattr__(self, "W_pl", self.W_ply)
+
+
+@dataclass(frozen=True)
+class RectangularSolidSection(SteelSection):
+    h: float
+    b: float
+
+    def __post_init__(self):
+        object.__setattr__(self, "name", f"Rect{self.h}x{self.b}")
+        object.__setattr__(self, "A", self.h * self.b)
+        object.__setattr__(self, "m", self.A * DENSITY / 1e6)
+        object.__setattr__(self, "P", 2 * (self.h + self.b))
+        object.__setattr__(self, "A_vz", self.A * self.h / (self.h + self.b))
+        object.__setattr__(self, "A_vy", self.A * self.b / (self.h + self.b))
+        object.__setattr__(self, "I_y", self.b * self.h ** 3 / 12)
+        object.__setattr__(self, "i_y", sqrt(self.I_y / self.A))
+        object.__setattr__(self, "W_ely", self.b * self.h ** 2 / 6)
+        object.__setattr__(self, "W_ply", self.b * self.h ** 2 / 4)
+        object.__setattr__(self, "I_z", self.h * self.b ** 3 / 12)
+        object.__setattr__(self, "i_z", sqrt(self.I_z / self.A))
+        object.__setattr__(self, "W_elz", self.h * self.b ** 2 / 6)
+        object.__setattr__(self, "W_plz", self.h * self.b ** 2 / 4)
+        object.__setattr__(self, "I_T", self._alpha() * self.h * self. b ** 3)
+        object.__setattr__(self, "W_T", self._beta() * self.h * self. b ** 2)
+
+    def _alpha(self):
+        data = rect_section_torsion_factors()
+        return np.interp(self.h / self.b, data[:,0], data[:,1])
+
+    def _beta(self):
+        data = rect_section_torsion_factors()
+        return np.interp(self.h / self.b, data[:,0], data[:,2])
 
 
 """
@@ -388,3 +427,11 @@ def _is_valid_property(df: pd.DataFrame, prop: str) -> bool:
     if prop in df.columns:
         return True
     return False
+
+
+def rect_section_torsion_factors() -> ArrayLike:
+    file_name = "torsion_factors_rectangular_solid_sections.csv"
+    folder = _get_data_path()
+
+    factors = np.loadtxt(folder / file_name, delimiter=",", skiprows=1)
+    return factors

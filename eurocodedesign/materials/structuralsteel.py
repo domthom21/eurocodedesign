@@ -33,6 +33,7 @@ from typing import Type
 
 from eurocodedesign.units import Pascal, mm2, N
 
+DENSITY = 7850      # kg/m³
 
 @dataclass(frozen=True)
 class BasicStructuralSteel():
