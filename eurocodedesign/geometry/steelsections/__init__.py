@@ -2,6 +2,7 @@
 STEEL PROFILE CLASSES
 """
 import os
+import re
 from math import sqrt
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -104,6 +105,8 @@ class CircularHollowSection(HollowSection, StandardSteelSection):
         object.__setattr__(self, "i", self.i_y)
         object.__setattr__(self, "W_el", self.W_ely)
         object.__setattr__(self, "W_pl", self.W_ply)
+        object.__setattr__(self, "h", self.D)
+        object.__setattr__(self, "b", self.D)
 
 
 @dataclass(frozen=True)
@@ -199,8 +202,13 @@ _SECTION_DATA = {
         "section_class": RectangularHollowSection,
     },
     "L": {"filename": "L_en10056_2017.csv",
-          "section_class": LSection}
+          "section_class": LSection
+    },
+    "Rect": {"filename": "",
+             "section_class": RectangularSolidSection}   
 }
+
+_NO_FILES = ["Rect"]
 
 # used to link the variable names in the csv data to variable names in code
 _PROPERTY_TYPE_MAP: Dict[str, Type[float] | Type[str]] = {
@@ -259,23 +267,25 @@ def _get_data_path() -> Path:
     return Path(os.path.dirname(os.path.realpath(__file__))) / "_data"
 
 
-def _is_valid_type(section_name: str) -> bool:
+def _is_valid_type(section_type: str) -> bool:
     """checks that the section type provided is valid
 
     A section type is valid if a csv datafile exists for the section type
     provided by section_name, e.g. "IPE", "HEA", "CHS", etc.
 
     Args:
-        section_name (str): name of the section section e.g. "IPE100"
+        section_type (str): type of section e.g. "IPE", "Rect"
     Returns:
         bool: True if the section type is valid, False otherwise
     """
-    for section_type in _SECTION_DATA.keys():
-        if section_type in section_name:
-            filepath = _get_data_path() \
-                       / str(_SECTION_DATA[section_type]["filename"])
-            return os.path.exists(filepath)
+    if section_type in _SECTION_DATA.keys():
+        return True
     return False
+
+
+def _is_file_available(section_type: str):
+    filepath = _get_data_path() / str(_SECTION_DATA[section_type]["filename"])
+    return os.path.exists(filepath)
 
 
 def import_section_database(section_type: str) -> pd.DataFrame:
@@ -339,6 +349,8 @@ def _get_section_type(section_name: str) -> str | None:
 
 def _load_section_props(section_name: str) -> Any:
     """retrieves the section properties for the given section
+    
+    assumes the section_name belongs to valid type of cross-section
 
     Args:
         section_name (str): the name of the steel section
@@ -352,19 +364,20 @@ def _load_section_props(section_name: str) -> Any:
     Returns:
         pd.Series: containing all the geometric data for the profile
     """
-    if not isinstance(section_name, str):
-        raise ValueError("Provide the section name as a string e.g. 'IPE100'")
-    else:
-        if not _is_valid_type(section_name):
-            raise ValueError(f"Invalid section type for section: "
-                             f"'{section_name}'")
-        section_type = _get_section_type(section_name)
-        if not section_type:
-            raise ValueError
-        section_db = import_section_database(section_type)
-        if _is_valid_section(section_name, section_db):
-            return section_db.loc[section_name]
-        raise ValueError(f"Invalid section name: '{section_name}'")
+    # if not isinstance(section_name, str):
+    #     raise ValueError("Provide the section name as a string e.g. 'IPE100'")
+    # else:
+    # if not _is_valid_type(section_name):
+    #     raise ValueError(f"Invalid section type for section: "
+    #                      f"'{section_name}'")
+    section_type = _get_section_type(section_name)
+    # if not section_type:
+    #     raise ValueError
+    section_db = import_section_database(section_type)
+    
+    if _is_valid_section(section_name, section_db):
+        return section_db.loc[section_name]
+    raise ValueError(f"Invalid section name: '{section_name}'")
 
 
 def _get_section(section_name: str) -> SteelSection:
@@ -380,15 +393,31 @@ def _get_section(section_name: str) -> SteelSection:
     Returns:
         SteelSection: object containing the geometric properties of the section
     """
-    section_props = _load_section_props(section_name)
-    section_type = _get_section_type(section_name)
-    if not section_type:
-        raise ValueError
-    section_class = _SECTION_DATA[section_type]["section_class"]
-    if not isinstance(section_class, type(SteelSection)):
-        raise TypeError
-    return section_class(section_name, **_map_property_names(section_props))
 
+    section_type = _get_section_type(section_name)
+    if not _is_valid_type(section_type):
+        raise ValueError(f"Invalid section type for section: '{section_name}'")
+    
+    if not section_type in _NO_FILES:
+        if not _is_file_available(section_type):
+            raise ValueError(f"No data available for: {section_type}")
+        
+        section_props = _load_section_props(section_name)
+        
+        if not section_type:
+            raise ValueError
+        
+        section_class = _SECTION_DATA[section_type]["section_class"]
+        if not isinstance(section_class, type(SteelSection)):
+            raise TypeError
+        return section_class(section_name, **_map_property_names(section_props))
+    
+    section_class = _SECTION_DATA[section_type]["section_class"]
+
+    if section_type == "Rect":
+        height, width = _rect_height_and_width(section_name)
+        return section_class(height, width)
+        
 
 def _map_property_names(section_props: Any) -> Dict[str, Any]:
     return {str(k): _PROPERTY_TYPE_MAP[k](v) for k, v in section_props.items()}
@@ -435,3 +464,19 @@ def rect_section_torsion_factors() -> ArrayLike:
 
     factors = np.loadtxt(folder / file_name, delimiter=",", skiprows=1)
     return factors
+
+
+def _rect_height_and_width(section_name: str):
+    if _has_valid_rect_dimensions(section_name):
+        height, width = section_name[4:].split("x")
+    return float(height), float(width)
+
+
+def _has_valid_rect_dimensions(section_name:str):
+    """returns true if section_name contains [float]x[float]
+    """
+    match = re.search(r"\d*\.?\d*+[x]\d*\.?\d*+", section_name)
+
+    if match == None:
+        return False
+    return True

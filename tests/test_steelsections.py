@@ -275,7 +275,7 @@ def dummy_100x60():
 
 
 def test_when_is_valid_type():
-    assert ss._is_valid_type("HEM600") is True
+    assert ss._is_valid_type("HEM") is True
 
 
 def test_when_not_is_valid_type_with_empty_string():
@@ -302,16 +302,11 @@ def test_when_get_section_type_is_not_found():
     assert ss._get_section_type("320LRB") == ""
 
 
-def test_load_section_props_input_not_string():
-    with raises(ValueError):
-        ss._load_section_props(2)
-
-
-def test_load_section_props_input_is_wrong_type():
+def test_get_section_input_is_wrong_type():
     with raises(
         ValueError, match="Invalid section type for section: 'XYZ281'"
     ):
-        ss._load_section_props("XYZ281")
+        ss._get_section("XYZ281")
 
 
 def test_load_section_props_input_is_wrong_section():
@@ -425,3 +420,31 @@ class TestRectangularSolidSection:
                    section.W_ply == approx(dummy_100x60["W_ply"]),
                    section.I_T == approx(dummy_100x60["I_T"]),
                    section.W_T == approx(dummy_100x60["W_T"])])
+        
+    def test_get(self):
+        section = ss.RectangularSolidSection(100, 60)
+        assert ss.get("Rect100x60") == section
+        
+
+class TestHasValidRectDimensions():
+    def test_with_floats(self):
+        section_name = "Rect100.3x61.2"
+        assert ss._has_valid_rect_dimensions(section_name) is True
+
+    def test_with_ints(self):
+        section_name = "Rect100x61"
+        assert ss._has_valid_rect_dimensions(section_name) is True
+
+    def test_floats_and_ints(self):
+        section_name = "Rect100x61.2"
+        assert ss._has_valid_rect_dimensions(section_name) is True
+
+    def test_no_x(self):
+        section_name = "Rect40y10"
+        ss._has_valid_rect_dimensions(section_name) is False
+
+
+def test_rect_height_and_width():
+    section_name = "Rect100.3x10"
+    height, width = ss._rect_height_and_width(section_name)
+    assert ((height == 100.3) and (width == 10)) is True
