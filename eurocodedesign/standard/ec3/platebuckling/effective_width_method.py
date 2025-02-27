@@ -10,11 +10,14 @@ on four edges only.
 """
 
 from functools import singledispatch
+from math import sqrt
 from typing import NoReturn, Any
 
 import numpy as np
 
-from eurocodedesign.core.typing import MeterTriple, Eta
+from eurocodedesign.constants import N, mm2
+from eurocodedesign.core.typing import MeterTriple, Eta, Pascal, Meter, Newton, \
+    Meter_2, Newtonmeter, Meter_3
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
 import eurocodedesign.standard.ec3 as ec3
 from eurocodedesign.standard.ec3 import platebuckling, buckling  # noqa: F401
@@ -22,8 +25,6 @@ from eurocodedesign.standard.ec3.crosssection.classification import \
     calc_epsilon
 from eurocodedesign.standard.ec3.platebuckling import PlateSupport, \
     PlateStiffeners
-from eurocodedesign.units import Meter, Pascal, Newton, N, mm2, Meter_2, \
-    Newtonmeter, Meter_3
 
 
 @singledispatch
@@ -180,7 +181,7 @@ def calc_sigma_E(t: Meter,
     Returns: maximum elastic stress :math:`\sigma_E`
 
     """
-    sigma_E: Pascal = 190_000 * N(1) / mm2(1) * (t / b) ** 2
+    sigma_E: Pascal = 190_000 * N/mm2 * (t / b) ** 2
     return sigma_E
 
 
@@ -348,12 +349,12 @@ def calc_rho_c(rho_p: float, chi_c: float,
 def calc_eta_1(f_y: Pascal,
                N_Ed: Newton,
                A_eff: Meter_2,
-               M_y_Ed: Newtonmeter = Newtonmeter(0),
-               W_yeff: Meter_3 = Meter_3(np.inf),
-               e_yN: Meter = Meter(0),
-               M_z_Ed: Newtonmeter = Newtonmeter(0),
-               W_zeff: Meter_3 = Meter_3(np.inf),
-               e_zN: Meter = Meter(0)) -> Eta:
+               M_y_Ed: Newtonmeter = 0.0,
+               W_yeff: Meter_3 = np.inf,
+               e_yN: Meter = 0.0,
+               M_z_Ed: Newtonmeter = 0.0,
+               W_zeff: Meter_3 = np.inf,
+               e_zN: Meter = 0.0) -> Eta:
     r"""
 Utilisation rate :math:`\eta_1` for plate buckling with effective width method
 
@@ -519,7 +520,7 @@ def calc_V_bw_Rd(chi_w: float, f_yw: Pascal, h_w: Meter,
     Returns: design resistance :math:`V_{bw,Rd}` of the web
 
     """
-    V_bw_Rd: Newton = (chi_w * f_yw * h_w * t_w)/(np.sqrt(3) * ec3.gamma_M1())
+    V_bw_Rd: Newton = (chi_w * f_yw * h_w * t_w)/(sqrt(3) * ec3.gamma_M1())
     return V_bw_Rd
 
 
@@ -558,7 +559,7 @@ resistance
     """
     eta: float = platebuckling.get_eta(steel_grade)
     V_b_Rd: Newton = V_bw_Rd + V_bf_Rd
-    max_V_b_Rd: Newton = (eta * f_yw * h_w * t_w)/(np.sqrt(3) * ec3.gamma_M1())
+    max_V_b_Rd: Newton = (eta * f_yw * h_w * t_w)/(sqrt(3) * ec3.gamma_M1())
     return min(V_b_Rd, max_V_b_Rd)
 
 

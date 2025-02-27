@@ -2,11 +2,10 @@ from typing import Literal, NoReturn
 
 import numpy as np
 
-from eurocodedesign.core.typing import FloatTriple, Eta
+from eurocodedesign.core.typing import FloatTriple, Eta, Pascal
 from eurocodedesign.standard.ec3 import gamma_M1
 from eurocodedesign.standard.ec3.platebuckling import PlateSupport
 from eurocodedesign.stepper import inject_stepper, Stepper
-from eurocodedesign.units import Pascal
 
 
 @inject_stepper
