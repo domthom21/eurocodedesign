@@ -19,9 +19,9 @@ def test_calc_bar_lambda_p():
 
 def test_calc_alpha_ultk():
     assert rsm.calc_alpha_ultk(f_y=355*MPa(),
-                               sigma_x_Ed=245*MPa(),
-                               sigma_z_Ed=0*MPa(),
-                               tau_Ed=41*MPa()) == approx(1.392, 0.001)
+                               sigma_x_Ed=245*MPa(1),
+                               sigma_z_Ed=0*MPa(1),
+                               tau_Ed=41*MPa(1)) == approx(1.392, 0.001)
 
 
 def test_calc_alpha_cr():
@@ -55,10 +55,10 @@ def test_calc_rho():
 
 
 def test_calc_eta():
-    assert rsm.calc_eta(f_y=355*MPa(),
-                        sigma_x_Ed=-231*MPa(),
-                        sigma_z_Ed=13.6*MPa(),
-                        tau_Ed=75*MPa(),
+    assert rsm.calc_eta(f_y=355*MPa(1),
+                        sigma_x_Ed=-231*MPa(1),
+                        sigma_z_Ed=13.6*MPa(1),
+                        tau_Ed=75*MPa(1),
                         rho_x=1,
                         rho_z=0.941,
                         chi_w=1) == approx(0.5854668265)

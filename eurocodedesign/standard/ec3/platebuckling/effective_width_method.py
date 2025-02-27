@@ -180,7 +180,7 @@ def calc_sigma_E(t: Meter,
     Returns: maximum elastic stress :math:`\sigma_E`
 
     """
-    sigma_E: Pascal = 190_000 * N() / mm2() * (t / b) ** 2
+    sigma_E: Pascal = 190_000 * N(1) / mm2(1) * (t / b) ** 2
     return sigma_E
 
 
@@ -348,12 +348,12 @@ def calc_rho_c(rho_p: float, chi_c: float,
 def calc_eta_1(f_y: Pascal,
                N_Ed: Newton,
                A_eff: Meter_2,
-               M_y_Ed: Newtonmeter = 0*Newtonmeter(),
-               W_yeff: Meter_3 = np.infty*Meter_3(),
-               e_yN: Meter = 0*Meter(),
-               M_z_Ed: Newtonmeter = 0*Newtonmeter(),
-               W_zeff: Meter_3 = np.infty*Meter_3(),
-               e_zN: Meter = 0*Meter()) -> Eta:
+               M_y_Ed: Newtonmeter = Newtonmeter(0),
+               W_yeff: Meter_3 = Meter_3(np.inf),
+               e_yN: Meter = Meter(0),
+               M_z_Ed: Newtonmeter = Newtonmeter(0),
+               W_zeff: Meter_3 = Meter_3(np.inf),
+               e_zN: Meter = Meter(0)) -> Eta:
     r"""
 Utilisation rate :math:`\eta_1` for plate buckling with effective width method
 
