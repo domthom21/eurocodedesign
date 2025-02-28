@@ -1,5 +1,5 @@
 """
-Eurocodedesign unit module
+Eurocodedesign constants module
 
 Module for easy wrangling with unit values.
 
