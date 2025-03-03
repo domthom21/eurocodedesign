@@ -13,22 +13,13 @@
 from math import sqrt
 from typing import Dict, List
 
+from eurocodedesign.constants import mm, mm2, mm3, MPa
+from eurocodedesign.core.typing import Pascal, Meter, Newton, Newtonmeter, \
+    Meter_2, Meter_3
 from eurocodedesign.geometry.steelsections import (
     RolledISection,
 )
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
-from eurocodedesign.units import (
-    Newton,
-    Meter_2,
-    Pascal,
-    MPa,
-    Meter,
-    Newtonmeter,
-    Meter_3,
-    mm,
-    mm2,
-    mm3,
-)
 
 
 def calc_epsilon(f_yk: Pascal) -> float:
@@ -41,7 +32,7 @@ def calc_epsilon(f_yk: Pascal) -> float:
     """
     if not isinstance(f_yk, Pascal):
         raise TypeError("'f_yk' must be of type 'Pascal'.")
-    return sqrt(235 * MPa() / f_yk)
+    return sqrt(235*MPa / f_yk)
 
 
 def calc_k_sigma(psi: float, comp_free_edge: bool = True) -> float:
@@ -220,11 +211,11 @@ def classify_rolled_i_section(
         )
 
     ct_vals = calc_i_section_cts(
-        mm(section.h),
-        mm(section.b),
-        mm(section.r),
-        mm(section.t_w),
-        mm(section.t_f),
+        section.h*mm,
+        section.b*mm,
+        section.r*mm,
+        section.t_w*mm,
+        section.t_f*mm,
     )  # "Meter" required because units are not yet implemented for sections.
 
     if not isinstance(N_Ed, Newton) and not isinstance(M_Ed_y, Newtonmeter):
@@ -236,8 +227,8 @@ def classify_rolled_i_section(
             ct_vals["web"][0], ct_vals["web"][1], material.f_yk, Newton(0)
         )
         psi_web = calc_psi_i_section_web(
-            mm2(section.A),
-            mm3(section.W_ely),
+            section.A*mm2,
+            section.W_ely*mm3,
             Newton(0),
             M_Ed_y,
         )
@@ -247,7 +238,7 @@ def classify_rolled_i_section(
                                              ct_vals["web"][1], material.f_yk,
                                              N_Ed)
         psi_web = calc_psi_i_section_web(
-            mm2(section.A), mm3(section.W_ely), N_Ed,
+            section.A*mm2, section.W_ely*mm3, N_Ed,
             Newtonmeter(0)
         )
 
@@ -256,7 +247,7 @@ def classify_rolled_i_section(
                                              ct_vals["web"][1], material.f_yk,
                                              N_Ed)
         psi_web = calc_psi_i_section_web(
-            mm2(section.A), mm3(section.W_ely), N_Ed,
+            section.A*mm2, section.W_ely*mm3, N_Ed,
             M_Ed_y
         )
 
@@ -278,25 +269,23 @@ def calc_i_section_cts(
     t_w: Meter,
     t_f: Meter,
 ) -> Dict[str, List[Meter]]:
-    # .to_numeric required to avoid assignment errors from mypy and Unit Module
-    c_flange = Meter((b.to_numeric() - (
-        2 * weld_or_radius.to_numeric() + t_w.to_numeric())) / 2)
-    c_web = Meter(
-        h.to_numeric() - 2 * (t_f.to_numeric() + weld_or_radius.to_numeric()))
+    c_flange: Meter = (b - (
+        2 * weld_or_radius + t_w)) / 2
+    c_web: Meter = h - 2 * (t_f + weld_or_radius)
 
     return {"flange": [c_flange, t_f], "web": [c_web, t_w]}
 
 
 def calc_alpha_i_section_web(c: Meter, t: Meter, f_yk: Pascal,
                              N_Ed: Newton) -> float:
-    e = abs(N_Ed.to_numeric()) / (t.to_numeric() * f_yk.to_numeric())
-    if N_Ed.to_numeric() < 0.0:
-        alpha = 0.5 - e / (2 * c.to_numeric())
+    e = abs(N_Ed) / (t * f_yk)
+    if N_Ed < 0.0:
+        alpha = 0.5 - e / (2 * c)
         if alpha <= 0.0:
             raise NotImplementedError(
                 "Tension demand larger than web capacity.")
     else:
-        alpha = min(0.5 + e / (2 * c.to_numeric()), 1.0)
+        alpha = min(0.5 + e / (2 * c), 1.0)
 
     return alpha
 
@@ -304,14 +293,13 @@ def calc_alpha_i_section_web(c: Meter, t: Meter, f_yk: Pascal,
 def calc_psi_i_section_web(
     A: Meter_2, W_ely: Meter_3, N_Ed: Newton, M_Ed_y: Newtonmeter
 ) -> float:
-    if N_Ed.to_numeric() == 0 and M_Ed_y.to_numeric() == 0:
+    if N_Ed == 0 and M_Ed_y == 0:
         return 1.0  # testing for compression case if not loads are given
 
     # to_numeric avoids error when dividing "joule" by "Meter_3"
-    sigma_N = Pascal(N_Ed.to_numeric() / A.to_numeric())  # +ve is compression
-    sigma_M = Pascal(
-        abs(M_Ed_y.to_numeric()) / W_ely.to_numeric()
-    )  # section is symmetric -> compression on top
+    sigma_N: Pascal = N_Ed / A  # +ve is compression
+    sigma_M: Pascal = abs(M_Ed_y) / W_ely
+    # section is symmetric -> compression on top
 
     sigma_top = sigma_N + sigma_M
     sigma_bottom = sigma_N - sigma_M
