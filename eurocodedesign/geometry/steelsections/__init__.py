@@ -48,6 +48,7 @@ class ISection(SteelSection):
     b: float = field(kw_only=True)
     t_w: float = field(kw_only=True)
     t_f: float = field(kw_only=True)
+    r: float = field(kw_only=True)
     A_vz: float = field(kw_only=True)
     A_vy: float = field(kw_only=True)
     W_ply: float = field(kw_only=True)
