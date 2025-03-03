@@ -6,7 +6,7 @@ eurocodedesign.geometry.steelsection.manager
 from unittest.mock import patch
 
 import pandas as pd
-from pytest import fixture, raises
+from pytest import fixture, raises, approx
 
 import eurocodedesign.geometry.steelsections as ss
 
@@ -252,8 +252,30 @@ def ipe_dataframe():
     return pd.DataFrame(data, columns=columns, index=["IPE100", "IPE270"])
 
 
+@fixture
+def dummy_100x60():
+    props = {
+            "A"	      :     6000,
+            "m"	      :     47.1,
+            "P"	      :     320,
+            "A_vz"    :	    6000,
+            "A_vy"    :	    6000,
+            "I_y"	  :     5000000,
+            "i_y"	  :     28.86751346,
+            "W_ely"   :	    100000,
+            "W_ply"   :	    150000,
+            "I_z"	  :     1800000,
+            "i_z"     :	    17.32050808,
+            "W_elz"   :	    60000,
+            "W_plz"   :	    90000,
+            "I_T"     :	    4471200.004,
+            "W_T"     :	    84960.00036}
+    return props
+
+
+
 def test_when_is_valid_type():
-    assert ss._is_valid_type("HEM600") is True
+    assert ss._is_valid_type("HEM") is True
 
 
 def test_when_not_is_valid_type_with_empty_string():
@@ -280,16 +302,11 @@ def test_when_get_section_type_is_not_found():
     assert ss._get_section_type("320LRB") == ""
 
 
-def test_load_section_props_input_not_string():
-    with raises(ValueError):
-        ss._load_section_props(2)
-
-
-def test_load_section_props_input_is_wrong_type():
+def test_get_section_input_is_wrong_type():
     with raises(
         ValueError, match="Invalid section type for section: 'XYZ281'"
     ):
-        ss._load_section_props("XYZ281")
+        ss._get_section("XYZ281")
 
 
 def test_load_section_props_input_is_wrong_section():
@@ -367,3 +384,67 @@ class TestIsValidPropety:
 
     def test_valid_property(self, ipe_dataframe):
         assert ss._is_valid_property(ipe_dataframe, "A") is True
+
+
+class TestTorsionFactors:
+    def test_shape(self):
+        assert ss.rect_section_torsion_factors().shape == (9,3)
+
+    def test_value(self):
+        assert ss.rect_section_torsion_factors()[2, 1] == 0.196
+
+
+class TestRectangularSolidSection:
+    def test_alpha(self):
+        section = ss.RectangularSolidSection(100, 60)
+        assert section._alpha() == approx(0.2070000022)
+
+    def test_beta(self):
+        section = ss.RectangularSolidSection(100, 60)
+        assert section._beta() == approx(0.236000001)
+
+    def test_properties(self, dummy_100x60):
+        section = ss.RectangularSolidSection(100, 60)
+        assert all([section.A == approx(dummy_100x60["A"]),
+                   section.m == approx(dummy_100x60["m"]),
+                   section.P == approx(dummy_100x60["P"]),
+                   section.A_vz == approx(dummy_100x60["A_vz"]),
+                   section.A_vy == approx(dummy_100x60["A_vy"]),
+                   section.I_y == approx(dummy_100x60["I_y"]),
+                   section.i_y == approx(dummy_100x60["i_y"]),
+                   section.W_ely == approx(dummy_100x60["W_ely"]),
+                   section.W_ply == approx(dummy_100x60["W_ply"]),
+                   section.I_z == approx(dummy_100x60["I_z"]),
+                   section.i_z == approx(dummy_100x60["i_z"]),
+                   section.W_elz == approx(dummy_100x60["W_elz"]),
+                   section.W_plz == approx(dummy_100x60["W_plz"]),
+                   section.I_T == approx(dummy_100x60["I_T"]),
+                   section.W_T == approx(dummy_100x60["W_T"])])
+        
+    def test_get(self):
+        section = ss.RectangularSolidSection(100, 60)
+        assert ss.get("Rect100x60") == section
+        
+
+class TestHasValidRectDimensions():
+    def test_with_floats(self):
+        section_name = "Rect100.3x61.2"
+        assert ss._has_valid_rect_dimensions(section_name) is True
+
+    def test_with_ints(self):
+        section_name = "Rect100x61"
+        assert ss._has_valid_rect_dimensions(section_name) is True
+
+    def test_floats_and_ints(self):
+        section_name = "Rect100x61.2"
+        assert ss._has_valid_rect_dimensions(section_name) is True
+
+    def test_no_x(self):
+        section_name = "Rect40y10"
+        ss._has_valid_rect_dimensions(section_name) is False
+
+
+def test_rect_height_and_width():
+    section_name = "Rect100.3x10"
+    height, width = ss._rect_height_and_width(section_name)
+    assert ((height == 100.3) and (width == 10)) is True
