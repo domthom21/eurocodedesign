@@ -258,8 +258,8 @@ def dummy_100x60():
             "A"	      :     6000,
             "m"	      :     47.1,
             "P"	      :     320,
-            "A_vz"    :	    3750,
-            "A_vy"    :	    2250,
+            "A_vz"    :	    6000,
+            "A_vy"    :	    6000,
             "I_y"	  :     5000000,
             "i_y"	  :     28.86751346,
             "W_ely"   :	    100000,
@@ -416,8 +416,8 @@ class TestRectangularSolidSection:
                    section.W_ply == approx(dummy_100x60["W_ply"]),
                    section.I_z == approx(dummy_100x60["I_z"]),
                    section.i_z == approx(dummy_100x60["i_z"]),
-                   section.W_ely == approx(dummy_100x60["W_ely"]),
-                   section.W_ply == approx(dummy_100x60["W_ply"]),
+                   section.W_elz == approx(dummy_100x60["W_elz"]),
+                   section.W_plz == approx(dummy_100x60["W_plz"]),
                    section.I_T == approx(dummy_100x60["I_T"]),
                    section.W_T == approx(dummy_100x60["W_T"])])
         

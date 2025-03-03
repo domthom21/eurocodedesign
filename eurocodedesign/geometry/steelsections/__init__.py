@@ -147,8 +147,8 @@ class RectangularSolidSection(SteelSection):
         object.__setattr__(self, "A", self.h * self.b)
         object.__setattr__(self, "m", self.A * DENSITY / 1e6)
         object.__setattr__(self, "P", 2 * (self.h + self.b))
-        object.__setattr__(self, "A_vz", self.A * self.h)
-        object.__setattr__(self, "A_vy", self.A * self.b)
+        object.__setattr__(self, "A_vz", self.b * self.h)
+        object.__setattr__(self, "A_vy", self.h * self.b)
         object.__setattr__(self, "I_y", self.b * self.h ** 3 / 12)
         object.__setattr__(self, "i_y", sqrt(self.I_y / self.A))
         object.__setattr__(self, "W_ely", self.b * self.h ** 2 / 6)
@@ -476,7 +476,7 @@ def _rect_height_and_width(section_name: str):
 def _has_valid_rect_dimensions(section_name:str):
     """returns true if section_name contains [float]x[float]
     """
-    match = re.search(r"\d*\.?\d*+[x]\d*\.?\d*+", section_name)
+    match = re.search(r"(\d+)\.?(\d+)[x](\d+)\.?(\d+)", section_name)
 
     if match == None:
         return False
