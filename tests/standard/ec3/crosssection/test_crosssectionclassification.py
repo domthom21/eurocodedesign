@@ -125,6 +125,9 @@ class TestCtLimitsDsupElements:
         assert actual == approx(expected)
 
 
+    
+
+
 class TestCtLimitsDsupElementClassOne:
     def test_alpha_lt_half(self):
         actual = csc.ct_limit_dsup_element_class_1(235*MPa, 0.4)
@@ -422,6 +425,13 @@ class TestClassifyRolledISection:
                 ipe270, S235_thin_material, M_Ed_z=100000*Nm
             )
 
+    def test_pure_tension_loading(self, ipe270, S235_thin_material):
+        actual = csc.classify_rolled_i_section(
+            ipe270, S235_thin_material, N_Ed=-1078650*N,
+            M_Ed_y=0*Nm
+        )
+        expected = 1
+        assert actual == expected
 
 def test_get_i_section_cts():
     actual = csc.calc_i_section_cts(300*mm, 150*mm, 15*mm, 8*mm, 12*mm)

@@ -217,14 +217,30 @@ def classify_rolled_i_section(
         section.t_w*mm,
         section.t_f*mm,
     )  # "Meter" required because units are not yet implemented for sections.
+    
+    web_class = classify_i_section_web(
+        section, material, ct_vals["web"][0], ct_vals["web"][1], N_Ed, M_Ed_y)
+    flange_class = classify_ssup_element(ct_vals["flange"][0],
+                                         ct_vals["flange"][1], material.f_yk)
+    cross_section_class = max(flange_class, web_class)
 
+    return cross_section_class
+
+
+def classify_i_section_web(section: RolledISection,
+                           material: BasicStructuralSteel,
+                           c: Meter, t: Meter,
+                           N_Ed: Newton | None = None,
+                           M_Ed_y: Newtonmeter | None = None
+                           ) -> int:
+    
     if not isinstance(N_Ed, Newton) and not isinstance(M_Ed_y, Newtonmeter):
         alpha_web: float = 1.0
         psi_web: float = 1.0
 
     elif not isinstance(N_Ed, Newton) and isinstance(M_Ed_y, Newtonmeter):
         alpha_web = calc_alpha_i_section_web(
-            ct_vals["web"][0], ct_vals["web"][1], material.f_yk, Newton(0)
+            c, t, material.f_yk, Newton(0)
         )
         psi_web = calc_psi_i_section_web(
             section.A*mm2,
@@ -234,32 +250,40 @@ def classify_rolled_i_section(
         )
 
     elif isinstance(N_Ed, Newton) and not isinstance(M_Ed_y, Newtonmeter):
-        alpha_web = calc_alpha_i_section_web(ct_vals["web"][0],
-                                             ct_vals["web"][1], material.f_yk,
-                                             N_Ed)
+        
+        try:
+            alpha_web = calc_alpha_i_section_web(c, t, material.f_yk, N_Ed)
+        
+        except ValueError as e:
+            if not str(e) == "Tension demand larger than web capacity.":
+                raise ValueError(e)
+            return 1       # because web is in tension it is class 1
+
         psi_web = calc_psi_i_section_web(
             section.A*mm2, section.W_ely*mm3, N_Ed,
             Newtonmeter(0)
         )
 
     elif isinstance(N_Ed, Newton) and isinstance(M_Ed_y, Newtonmeter):
-        alpha_web = calc_alpha_i_section_web(ct_vals["web"][0],
-                                             ct_vals["web"][1], material.f_yk,
-                                             N_Ed)
+
+        try:
+            alpha_web = calc_alpha_i_section_web(c, t, material.f_yk, N_Ed)
+        
+        except ValueError as e:
+            if not str(e) == "Tension demand larger than web capacity.":
+                raise ValueError(e)
+            return 1       # because web is in tension it is class 1
+        
         psi_web = calc_psi_i_section_web(
             section.A*mm2, section.W_ely*mm3, N_Ed,
             M_Ed_y
         )
 
-    web_class = classify_dsup_element(
-        ct_vals["web"][0], ct_vals["web"][1], material.f_yk, alpha_web, psi_web
-    )
+    if psi_web > 1: # the web is completely in tension under elastic conditions
+       return 1
+    else:
+        return classify_dsup_element(c, t, material.f_yk, alpha_web, psi_web)
 
-    flange_class = classify_ssup_element(ct_vals["flange"][0],
-                                         ct_vals["flange"][1], material.f_yk)
-    cross_section_class = max(flange_class, web_class)
-
-    return cross_section_class
 
 
 def calc_i_section_cts(
@@ -282,7 +306,7 @@ def calc_alpha_i_section_web(c: Meter, t: Meter, f_yk: Pascal,
     if N_Ed < 0.0:
         alpha = 0.5 - e / (2 * c)
         if alpha <= 0.0:
-            raise NotImplementedError(
+            raise ValueError(
                 "Tension demand larger than web capacity.")
     else:
         alpha = min(0.5 + e / (2 * c), 1.0)
