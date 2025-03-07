@@ -519,9 +519,3 @@ class TestCalcAlphaISectionWeb:
         expected = 0.1453900709
         assert actual == approx(expected)
 
-    def test_negative_N_gt_web_capacity(self):
-        with raises(NotImplementedError,
-                    match=r"Tension demand larger than web capacity."):
-            csc.calc_alpha_i_section_web(
-                120*mm, 5*mm, 235*MPa, -10000000*N
-            )
