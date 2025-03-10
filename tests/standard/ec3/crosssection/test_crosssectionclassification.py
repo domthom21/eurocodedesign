@@ -122,10 +122,7 @@ class TestCtLimitsDsupElements:
     def test_235MPa_bending_and_compression(self):
         actual = csc.ct_limits_dsup_elements(235*MPa, 0.3, -1.3)
         expected = {1: 120, 2: 138.3333333, 3: 162.5890156}
-        assert actual == approx(expected)
-
-
-    
+        assert actual == approx(expected) 
 
 
 class TestCtLimitsDsupElementClassOne:
