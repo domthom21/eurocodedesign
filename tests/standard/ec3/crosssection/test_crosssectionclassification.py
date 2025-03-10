@@ -122,7 +122,7 @@ class TestCtLimitsDsupElements:
     def test_235MPa_bending_and_compression(self):
         actual = csc.ct_limits_dsup_elements(235*MPa, 0.3, -1.3)
         expected = {1: 120, 2: 138.3333333, 3: 162.5890156}
-        assert actual == approx(expected)
+        assert actual == approx(expected) 
 
 
 class TestCtLimitsDsupElementClassOne:
@@ -422,6 +422,13 @@ class TestClassifyRolledISection:
                 ipe270, S235_thin_material, M_Ed_z=100000*Nm
             )
 
+    def test_pure_tension_loading(self, ipe270, S235_thin_material):
+        actual = csc.classify_rolled_i_section(
+            ipe270, S235_thin_material, N_Ed=-1078650*N,
+            M_Ed_y=0*Nm
+        )
+        expected = 1
+        assert actual == expected
 
 def test_get_i_section_cts():
     actual = csc.calc_i_section_cts(300*mm, 150*mm, 15*mm, 8*mm, 12*mm)
@@ -509,9 +516,3 @@ class TestCalcAlphaISectionWeb:
         expected = 0.1453900709
         assert actual == approx(expected)
 
-    def test_negative_N_gt_web_capacity(self):
-        with raises(NotImplementedError,
-                    match=r"Tension demand larger than web capacity."):
-            csc.calc_alpha_i_section_web(
-                120*mm, 5*mm, 235*MPa, -10000000*N
-            )
