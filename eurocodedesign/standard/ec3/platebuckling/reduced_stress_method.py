@@ -21,9 +21,9 @@ def is_permitted(rho: float, alpha_ultk: float, stepper: Stepper) -> bool:
     plates.
 
     Args:
-        rho: reduction factor :math:`\rho` from §10 (5), see calc_rho
+        rho: reduction factor :math:`\rho` from §10 (5), see rho
         alpha_ultk: minimum load amplifier :math:`\alpha_{ult,k}` of the design
-         loads, see calc_alpha_ultk
+         loads, see alpha_ultk
         stepper: Stepper object to which calculcation steps are added
 
     Returns:
@@ -40,7 +40,7 @@ def is_permitted(rho: float, alpha_ultk: float, stepper: Stepper) -> bool:
     return valid
 
 
-def calc_bar_lambda_p(alpha_ultk: float,
+def bar_lambda_p(alpha_ultk: float,
                       alpha_cr: float) -> float:
     r"""Calculate the plate slenderness :math:`\bar{\lambda}_p`
     of the plate buckling field according to EN 1993-1-5:2019-10 §10 (3)
@@ -48,9 +48,9 @@ def calc_bar_lambda_p(alpha_ultk: float,
    Args:
        alpha_ultk: minimum load amplifier of the design loads to reach
         the characteristic resistance of the most critical cross-section,
-        see calc_alpha_ultk
+        see alpha_ultk
        alpha_cr: critical load factor for plate buckling
-        (minimum force amplifier), see calc_alpha_cr
+        (minimum force amplifier), see alpha_cr
 
     Returns:
         FloatSequence: The plate slenderness :math:`\bar{\lambda}_p``.
@@ -60,7 +60,7 @@ def calc_bar_lambda_p(alpha_ultk: float,
     return bar_lambda_p
 
 
-def calc_alpha_ultk(f_y: Pascal,
+def alpha_ultk(f_y: Pascal,
                     sigma_x_Ed: Pascal,
                     sigma_z_Ed: Pascal,
                     tau_Ed: Pascal) -> float:
@@ -93,7 +93,7 @@ def calc_alpha_ultk(f_y: Pascal,
     return alpha_ultk
 
 
-def calc_alpha_cr(alpha_crx: float, alpha_crz: float, alpha_crtau: float,
+def alpha_cr(alpha_crx: float, alpha_crz: float, alpha_crtau: float,
                   psi_x: float, psi_z: float) -> float:
     r"""Calculates :math:`\alpha_{cr}` from
     :math:`\sigma_{x,Ed}, \sigma_{z,Ed}, \tau_{Ed}`
@@ -126,7 +126,7 @@ def calc_alpha_cr(alpha_crx: float, alpha_crz: float, alpha_crtau: float,
     return alpha_cr
 
 
-def _calc_chi_w() -> NoReturn:
+def _chi_w() -> NoReturn:
     r"""Calculate the reduction factor :math:`\chi_w` for shear buckling
 
     Calculation according to EN 1993-1-5:2019-10 §5.3(1).
@@ -137,7 +137,7 @@ def _calc_chi_w() -> NoReturn:
 ReductionMethod = Literal['smallest', 'interpolate']
 
 
-def _calc_rho(support: PlateSupport,
+def _rho(support: PlateSupport,
               bar_lambda_p: float,
               psi: float = 1.0) -> float:
     r"""Calculates the reduction factor :math:`\\rho`
@@ -150,7 +150,7 @@ def _calc_rho(support: PlateSupport,
     Args:
         support: PlateSupport.ONE_SIDE or PlateSupport.TWO_SIDE
         bar_lambda_p: relative slenderness :math:`\bar{\lambda}_p` for
-        plate buckling, see calc_bar_lambda_p
+        plate buckling, see bar_lambda_p
         psi: stress ratio :math:`\psi`
 
     Returns:
@@ -175,7 +175,7 @@ def _calc_rho(support: PlateSupport,
     return rho
 
 
-def calc_rho(method: ReductionMethod,
+def rho(method: ReductionMethod,
              support: PlateSupport,
              bar_lambda_p: float,
              psi_x: float,
@@ -200,10 +200,10 @@ def calc_rho(method: ReductionMethod,
         FloatTriple:  :math:`\rho_x, \rho_z, \chi_w`
 
     """
-    rho_x: float = _calc_rho(support, bar_lambda_p, psi_x)
+    rho_x: float = _rho(support, bar_lambda_p, psi_x)
     # Note for rho_z, §6 is neglected, instead 4.5.4(1) is used
-    rho_z: float = _calc_rho(support, bar_lambda_p, psi_z)
-    # chi_w: float = _calc_chi_w() # Currently not supported
+    rho_z: float = _rho(support, bar_lambda_p, psi_z)
+    # chi_w: float = _chi_w() # Currently not supported
     chi_w: float = 1.0
 
     if method == 'interpolate':
@@ -214,7 +214,7 @@ def calc_rho(method: ReductionMethod,
     raise ValueError(f'Method {method} not supported.')
 
 
-def calc_eta(f_y: Pascal,
+def eta(f_y: Pascal,
              sigma_x_Ed: Pascal,
              sigma_z_Ed: Pascal,
              tau_Ed: Pascal,
