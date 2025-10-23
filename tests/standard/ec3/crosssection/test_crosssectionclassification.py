@@ -122,7 +122,7 @@ class TestCtLimitsDsupElements:
     def test_235MPa_bending_and_compression(self):
         actual = csc.ct_limits_dsup_elements(235*MPa, 0.3, -1.3)
         expected = {1: 120, 2: 138.3333333, 3: 162.5890156}
-        assert actual == approx(expected) 
+        assert actual == approx(expected)
 
 
 class TestCtLimitsDsupElementClassOne:
@@ -291,27 +291,27 @@ class TestCtLimitSsupElementClassThree:
 
 class TestCalcKsigma:
     def test_compression_free_edge(self):
-        actual = csc.calc_k_sigma(0.5)
+        actual = csc.k_sigma(0.5)
         expected = 0.4825
         assert actual == approx(expected)
 
     def test_tension_free_edge_gt_zero(self):
-        actual = csc.calc_k_sigma(0.5, comp_free_edge=False)
+        actual = csc.k_sigma(0.5, comp_free_edge=False)
         expected = 0.6880952381
         assert actual == approx(expected)
 
     def test_tension_free_edge_eq_zero(self):
-        actual = csc.calc_k_sigma(0.0, comp_free_edge=False)
+        actual = csc.k_sigma(0.0, comp_free_edge=False)
         expected = 1.7
         assert actual == approx(expected)
 
     def test_tension_free_edge_eq_one(self):
-        actual = csc.calc_k_sigma(1.0, comp_free_edge=False)
+        actual = csc.k_sigma(1.0, comp_free_edge=False)
         expected = 0.43
         assert actual == approx(expected)
 
     def test_tension_free_edge_eq_minus_one(self):
-        actual = csc.calc_k_sigma(-1, comp_free_edge=False)
+        actual = csc.k_sigma(-1, comp_free_edge=False)
         expected = 23.8
         assert actual == approx(expected)
 
@@ -431,7 +431,7 @@ class TestClassifyRolledISection:
         assert actual == expected
 
 def test_get_i_section_cts():
-    actual = csc.calc_i_section_cts(300*mm, 150*mm, 15*mm, 8*mm, 12*mm)
+    actual = csc.i_section_cts(300*mm, 150*mm, 15*mm, 8*mm, 12*mm)
     # conversion of result to floats because unit module does not support
     # comparison with the approximate values used by pytest
     actual = {k: [v[0], v[1]] for k, v in
@@ -445,49 +445,49 @@ def test_get_i_section_cts():
 
 class TestCalcPsiISectionWeb:
     def test_positive_N_only(self):
-        actual = csc.calc_psi_i_section_web(
+        actual = csc.psi_i_section_web(
             100*mm2, mm3, 5000*N, 0*Nm
         )
         expected = 1
         assert actual == expected
 
     def test_negative_N_only(self):
-        actual = csc.calc_psi_i_section_web(
+        actual = csc.psi_i_section_web(
             100*mm2, 1000*mm3, -5000*N, 0*Nm
         )
         expected = 1
         assert actual == expected
 
     def test_positive_M_only(self):
-        actual = csc.calc_psi_i_section_web(
+        actual = csc.psi_i_section_web(
             100*mm2, 1000*mm3, 0*N, 50*Nm
         )
         expected = -1
         assert actual == expected
 
     def test_negative_M_only(self):
-        actual = csc.calc_psi_i_section_web(
+        actual = csc.psi_i_section_web(
             100*mm2, 1000*mm3, 0*N, -50*Nm
         )
         expected = -1
         assert actual == expected
 
     def test_positive_N_and_M(self):
-        actual = csc.calc_psi_i_section_web(
+        actual = csc.psi_i_section_web(
             100*mm2, 1000*mm3, 5000*N, 75*Nm
         )
         expected = -0.2
         assert actual == approx(expected)
 
     def test_negative_N_and_positive_M(self):
-        actual = csc.calc_psi_i_section_web(
+        actual = csc.psi_i_section_web(
             100*mm2, 1000*mm3, -5000*N, 75*Nm
         )
         expected = -5
         assert actual == approx(expected)
 
     def test_negative_N_and_negative_M(self):
-        actual = csc.calc_psi_i_section_web(
+        actual = csc.psi_i_section_web(
             100*mm2, 1000*mm3, -5000*N, -75*Nm
         )
         expected = -5
@@ -496,21 +496,21 @@ class TestCalcPsiISectionWeb:
 
 class TestCalcAlphaISectionWeb:
     def test_positive_N(self):
-        actual = csc.calc_alpha_i_section_web(
+        actual = csc.alpha_i_section_web(
             120*mm, 5*mm, 235*MPa, 100000*N
         )
         expected = 0.8546099291
         assert actual == approx(expected)
 
     def test_positive_N_gt_web_capacity(self):
-        actual = csc.calc_alpha_i_section_web(
+        actual = csc.alpha_i_section_web(
             120*mm, 5*mm, 235*MPa, 10000000*N
         )
         expected = 1
         assert actual == approx(expected)
 
     def test_negative_N(self):
-        actual = csc.calc_alpha_i_section_web(
+        actual = csc.alpha_i_section_web(
             120*mm, 5*mm, 235*MPa, -100000*N
         )
         expected = 0.1453900709

@@ -35,7 +35,7 @@ def gamma_Mf(country: NACountry = NACountry.NONE) -> NoReturn:
                               " not implemented, yet.")
 
 
-def calc_lambda_1(bridge_type: BridgeType,
+def lambda_1(bridge_type: BridgeType,
                   L: Meter,
                   bridge_section: BridgeSection) -> float:
     r"""Calculate damage effect factor :math:`\lambda_1` of traffic
@@ -73,7 +73,7 @@ def calc_lambda_1(bridge_type: BridgeType,
     return lambda_1
 
 
-def calc_lambda_2(bridge_type: BridgeType,
+def lambda_2(bridge_type: BridgeType,
                   Q_m1: Newton,
                   N_Obs: int) -> float:
     r"""Calculate traffic volume factor :math:`\lambda_2`
@@ -99,7 +99,7 @@ def calc_lambda_2(bridge_type: BridgeType,
     return lambda_2
 
 
-def calc_lambda_3(bridge_type: BridgeType, t_Ld: float) -> float:
+def lambda_3(bridge_type: BridgeType, t_Ld: float) -> float:
     r"""Calculate bridge design life factor :math:`\lambda_3`
 
     According to EN 1993-2:2010-12 §9.5.2(3)
@@ -121,7 +121,7 @@ def calc_lambda_3(bridge_type: BridgeType, t_Ld: float) -> float:
 
 
 @NDP
-def calc_lambda_4(bridge_type: BridgeType,
+def lambda_4(bridge_type: BridgeType,
                   k: float,
                   country: NACountry = '') -> float:
     r"""Calculate traffic on other lanes factor :math:`\lambda_4`
@@ -143,7 +143,7 @@ def calc_lambda_4(bridge_type: BridgeType,
     raise NotImplementedError
 
 
-def calc_lambda_max(bridge_type: BridgeType,
+def lambda_max(bridge_type: BridgeType,
                     L: Meter,
                     bridge_section: BridgeSection) -> float:
     r"""Calculate maximum damage equivalence factor :math:`\lambda_{max}`
@@ -179,7 +179,7 @@ def calc_lambda_max(bridge_type: BridgeType,
     return lambda_max
 
 
-def calc_lambda(lambda_1: float,
+def lambda(lambda_1: float,
                 lambda_2: float,
                 lambda_3: float,
                 lambda_4: float,
@@ -223,7 +223,7 @@ def get_Phi_2(bridge_type: BridgeType) -> float:
     raise NotImplementedError(f"Not implemented for {bridge_type}")
 
 
-def calc_Delta_sigma_E2(lambda_: float,
+def Delta_sigma_E2(lambda_: float,
                         Phi_2: float,
                         Delta_sigma_p: Pascal) -> Pascal:
     """

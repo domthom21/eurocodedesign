@@ -22,7 +22,7 @@ from eurocodedesign.geometry.steelsections import (
 from eurocodedesign.materials.structuralsteel import BasicStructuralSteel
 
 
-def calc_epsilon(f_yk: Pascal) -> float:
+def epsilon(f_yk: Pascal) -> float:
     """Calculates the material specific epsilon factor
 
     Args:
@@ -35,7 +35,7 @@ def calc_epsilon(f_yk: Pascal) -> float:
     return sqrt(235*MPa / f_yk)
 
 
-def calc_k_sigma(psi: float, comp_free_edge: bool = True) -> float:
+def k_sigma(psi: float, comp_free_edge: bool = True) -> float:
     if comp_free_edge:
         return 0.57 - 0.21 * psi + 0.07 * psi ** 2
 
@@ -69,7 +69,7 @@ def ct_limits_dsup_elements(f_yk: Pascal, alpha: float, psi: float) -> Dict[
 
 
 def ct_limit_dsup_element_class_1(f_yk: Pascal, alpha: float) -> float:
-    eps = calc_epsilon(f_yk)
+    eps = epsilon(f_yk)
     if alpha <= 0.5:
         return 36 * eps / alpha
     else:
@@ -77,7 +77,7 @@ def ct_limit_dsup_element_class_1(f_yk: Pascal, alpha: float) -> float:
 
 
 def ct_limit_dsup_element_class_2(f_yk: Pascal, alpha: float) -> float:
-    eps = calc_epsilon(f_yk)
+    eps = epsilon(f_yk)
     if alpha <= 0.5:
         return 41.5 * eps / alpha
     else:
@@ -85,7 +85,7 @@ def ct_limit_dsup_element_class_2(f_yk: Pascal, alpha: float) -> float:
 
 
 def ct_limit_dsup_element_class_3(f_yk: Pascal, psi: float) -> float:
-    eps = calc_epsilon(f_yk)
+    eps = epsilon(f_yk)
     if psi <= -1:
         return 62 * eps * (1 - psi) * sqrt(-psi)
     else:
@@ -128,43 +128,43 @@ def ct_limits_ssup_elements(
 
 
 def ct_limit_ssup_element_class_1(f_yk: Pascal, alpha: float) -> float:
-    return 9 * calc_epsilon(f_yk) / alpha
+    return 9 * epsilon(f_yk) / alpha
 
 
 def ct_limit_ssup_element_class_1_tension_free_edge(
     f_yk: Pascal, alpha: float
 ) -> float:
-    return 9 * calc_epsilon(f_yk) / (alpha * sqrt(alpha))
+    return 9 * epsilon(f_yk) / (alpha * sqrt(alpha))
 
 
 def ct_limit_ssup_element_class_2(f_yk: Pascal, alpha: float) -> float:
-    return 10 * calc_epsilon(f_yk) / alpha
+    return 10 * epsilon(f_yk) / alpha
 
 
 def ct_limit_ssup_element_class_2_tension_free_edge(
     f_yk: Pascal, alpha: float
 ) -> float:
-    return 10 * calc_epsilon(f_yk) / (alpha * sqrt(alpha))
+    return 10 * epsilon(f_yk) / (alpha * sqrt(alpha))
 
 
 def ct_limit_ssup_element_class_3(f_yk: Pascal, psi: float) -> float:
     if psi == 1.0:
-        return 14 * calc_epsilon(f_yk)
+        return 14 * epsilon(f_yk)
 
-    return 21 * calc_epsilon(f_yk) * sqrt(calc_k_sigma(psi))
+    return 21 * epsilon(f_yk) * sqrt(k_sigma(psi))
 
 
 def ct_limit_ssup_element_class_3_tension_free_edge(f_yk: Pascal,
                                                     psi: float) -> float:
-    return 21 * calc_epsilon(f_yk) * sqrt(
-        calc_k_sigma(psi, comp_free_edge=False))
+    return 21 * epsilon(f_yk) * sqrt(
+        k_sigma(psi, comp_free_edge=False))
 
 
 def classify_angle_cross_section(h: Meter, b: Meter, t: Meter,
                                  f_yk: Pascal) -> int:
     slenderness = h / t
     slenderess_2 = (b + h) / (2 * t)
-    eps = calc_epsilon(f_yk)
+    eps = epsilon(f_yk)
 
     limit_one = 15 * eps
     limit_two = 11.5 * eps
@@ -188,7 +188,7 @@ def classify_chs_cross_section(d: Meter, t: Meter, f_yk: Pascal) -> int:
 
 
 def ct_limits_chs_elements(f_yk: Pascal) -> Dict[int, float]:
-    eps = calc_epsilon(f_yk)
+    eps = epsilon(f_yk)
     ct_limits = {
         1: 50 * eps ** 2,
         2: 70 * eps ** 2,
@@ -210,14 +210,14 @@ def classify_rolled_i_section(
             " minor axis bending is not supported"
         )
 
-    ct_vals = calc_i_section_cts(
+    ct_vals = i_section_cts(
         section.h*mm,
         section.b*mm,
         section.r*mm,
         section.t_w*mm,
         section.t_f*mm,
     )  # "Meter" required because units are not yet implemented for sections.
-    
+
     web_class = classify_i_section_web(
         section, material, ct_vals["web"][0], ct_vals["web"][1], N_Ed, M_Ed_y)
     flange_class = classify_ssup_element(ct_vals["flange"][0],
@@ -233,16 +233,16 @@ def classify_i_section_web(section: RolledISection,
                            N_Ed: Newton | None = None,
                            M_Ed_y: Newtonmeter | None = None
                            ) -> int:
-    
+
     if not isinstance(N_Ed, Newton) and not isinstance(M_Ed_y, Newtonmeter):
         alpha_web: float = 1.0
         psi_web: float = 1.0
 
     elif not isinstance(N_Ed, Newton) and isinstance(M_Ed_y, Newtonmeter):
-        alpha_web = calc_alpha_i_section_web(
+        alpha_web = alpha_i_section_web(
             c, t, material.f_yk, Newton(0)
         )
-        psi_web = calc_psi_i_section_web(
+        psi_web = psi_i_section_web(
             section.A*mm2,
             section.W_ely*mm3,
             Newton(0),
@@ -250,16 +250,16 @@ def classify_i_section_web(section: RolledISection,
         )
 
     elif isinstance(N_Ed, Newton) and not isinstance(M_Ed_y, Newtonmeter):
-        
+
         try:
-            alpha_web = calc_alpha_i_section_web(c, t, material.f_yk, N_Ed)
-        
+            alpha_web = alpha_i_section_web(c, t, material.f_yk, N_Ed)
+
         except ValueError as e:
             if not str(e) == "Tension demand larger than web capacity.":
                 raise ValueError(e)
             return 1       # because web is in tension it is class 1
 
-        psi_web = calc_psi_i_section_web(
+        psi_web = psi_i_section_web(
             section.A*mm2, section.W_ely*mm3, N_Ed,
             Newtonmeter(0)
         )
@@ -267,14 +267,14 @@ def classify_i_section_web(section: RolledISection,
     elif isinstance(N_Ed, Newton) and isinstance(M_Ed_y, Newtonmeter):
 
         try:
-            alpha_web = calc_alpha_i_section_web(c, t, material.f_yk, N_Ed)
-        
+            alpha_web = alpha_i_section_web(c, t, material.f_yk, N_Ed)
+
         except ValueError as e:
             if not str(e) == "Tension demand larger than web capacity.":
                 raise ValueError(e)
             return 1       # because web is in tension it is class 1
-        
-        psi_web = calc_psi_i_section_web(
+
+        psi_web = psi_i_section_web(
             section.A*mm2, section.W_ely*mm3, N_Ed,
             M_Ed_y
         )
@@ -286,7 +286,7 @@ def classify_i_section_web(section: RolledISection,
 
 
 
-def calc_i_section_cts(
+def i_section_cts(
     h: Meter,
     b: Meter,
     weld_or_radius: Meter,
@@ -300,7 +300,7 @@ def calc_i_section_cts(
     return {"flange": [c_flange, t_f], "web": [c_web, t_w]}
 
 
-def calc_alpha_i_section_web(c: Meter, t: Meter, f_yk: Pascal,
+def alpha_i_section_web(c: Meter, t: Meter, f_yk: Pascal,
                              N_Ed: Newton) -> float:
     e = abs(N_Ed) / (t * f_yk)
     if N_Ed < 0.0:
@@ -314,7 +314,7 @@ def calc_alpha_i_section_web(c: Meter, t: Meter, f_yk: Pascal,
     return alpha
 
 
-def calc_psi_i_section_web(
+def psi_i_section_web(
     A: Meter_2, W_ely: Meter_3, N_Ed: Newton, M_Ed_y: Newtonmeter
 ) -> float:
     if N_Ed == 0 and M_Ed_y == 0:
