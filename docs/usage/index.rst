@@ -1,17 +1,13 @@
-Welcome to eurocodedesign's documentation!
+Usage
 ==========================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   readme
-   installation
-   usage/index
-   modules
-   contributing
-   authors
-   history
+   usage
+   namingconvention
+   ec3
 
 Indices and tables
 ==================

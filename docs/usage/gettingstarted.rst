@@ -1,5 +1,5 @@
 =====
-Usage
+Getting started
 =====
 
 To use eurocodedesign in a project::
